@@ -225,12 +225,13 @@ export function Quiz() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
                 {/* Restart Quiz QR Code */}
                 <div className="flex flex-col items-center">
-                  <span className="mb-2 text-sm font-medium">Restart Quiz</span>
+                  <span className="mb-2 text-base font-medium">Restart Quiz</span>
                   <div 
                     className="w-full max-w-[180px] sm:max-w-[200px] lg:max-w-[240px] cursor-pointer bg-white p-2 rounded-lg" 
                     onClick={() => handleScan(QR_COMMANDS.RESET)}
                   >
                     <QRCode 
+                      size={200}
                       value={QR_COMMANDS.RESET} 
                       className="w-full aspect-square"
                     />
@@ -239,7 +240,7 @@ export function Quiz() {
                 
                 {/* Toggle Answers QR Code */}
                 <div className="flex flex-col items-center">
-                  <span className="mb-2 text-sm font-medium">
+                  <span className="mb-2 text-base font-medium">
                     {showingAnswers ? "Hide Answers" : "Show Answers"}
                   </span>
                   <div 
@@ -247,6 +248,7 @@ export function Quiz() {
                     onClick={() => setShowingAnswers(prev => !prev)}
                   >
                     <QRCode 
+                      size={200}
                       value={showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS} 
                       className="w-full aspect-square"
                     />
@@ -348,7 +350,7 @@ export function Quiz() {
       
       {/* Main quiz content */}
       <main className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col">
-        <div className="w-full mx-auto flex-1 flex flex-col max-w-7xl 2xl:max-w-[90%]">
+        <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%]">
           {/* Question with Demo badge if needed */}
           <div className="bg-[#2b2b33] p-4 sm:p-6 rounded-lg shadow-md mb-6 sm:mb-8 relative">
             {currentQuestion.isDemo && (
@@ -356,7 +358,7 @@ export function Quiz() {
                 DEMO
               </div>
             )}
-            <h2 className="text-lg sm:text-xl md:text-2xl text-center font-medium mb-2">{currentQuestion.text}</h2>
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-center font-medium mb-2">{currentQuestion.text}</h2>
             <p className="text-center text-sm text-gray-400">Scan a barcode or tap an option to answer</p>
           </div>
           

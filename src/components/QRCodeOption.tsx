@@ -55,7 +55,7 @@ function QRCodeOptionImpl({
       onClick={handleClick}
     >
       {/* Option text with fixed height */}
-      <div className="text-xs sm:text-sm md:text-base font-medium text-[#ebebf0] mb-3 text-center h-14 md:h-16 flex items-center justify-center">
+      <div className="text-base sm:text-md md:text-xl lg:text-2xl font-medium text-[#ebebf0] mb-3 text-center h-14 md:h-16 flex items-center justify-center">
         <span className="line-clamp-3">{option.text}</span>
       </div>
       

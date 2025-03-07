@@ -145,15 +145,21 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
     const batchSize = Math.max(6, count); // Reduced batch size to avoid truncation
     
     // Interesting prompt for diverse and thought-provoking questions
+    const categories = [
+      "Theology and philosophy (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)",
+      "Art and literature (surprising facts about masterpieces, writers' lives)",
+      "Science (cutting-edge discoveries, counterintuitive findings)",
+      "Technology (inventions that changed history, unusual tech facts)",
+    //   "Barcode and QR code trivia (since users will be scanning with a barcode scanner)",
+    ];
+
     const prompt = `Create ${batchSize} genuinely interesting and thought-provoking trivia questions that will surprise and engage users.
 
 Make questions fun, unusual, and thought-provoking - AVOID basic facts that everyone knows.
-Include a diverse mix from these categories:
-- Theology and philosophy (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)
-- Art and literature (surprising facts about masterpieces, writers' lives)
-- Science (cutting-edge discoveries, counterintuitive findings)
-- Technology (inventions that changed history, unusual tech facts)
-- Barcode and QR code trivia (since users will be scanning with a barcode scanner)
+IMPORTANT: ONLY create questions from the ACTIVE categories below (ignore any commented categories):
+${categories.filter(cat => !cat.startsWith('//'))
+    .map(category => `- ${category.trim()}`)
+    .join('\n')}
 
 Each question MUST be:
 1. Novel and surprising - something most people wouldn't know
@@ -173,7 +179,8 @@ Format as JSON:
   }
 ]
 
-IMPORTANT: Return VALID JSON only. No additional text before or after the JSON array.`;
+IMPORTANT: Return VALID JSON only. No additional text before or after the JSON array.
+IMPORTANT: Only generate questions for the active (uncommented) categories listed above. Do not generate questions for any other categories.`;
 
     // Use standard API call without schema configuration
     const response = await fetch(
