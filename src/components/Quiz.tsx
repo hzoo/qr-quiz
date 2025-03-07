@@ -337,7 +337,7 @@ export function Quiz() {
       
       {/* Main quiz content */}
       <main className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col">
-        <div className="max-w-7xl w-full mx-auto flex-1 flex flex-col">
+        <div className="w-full mx-auto flex-1 flex flex-col max-w-7xl 2xl:max-w-[90%]">
           {/* Question with Demo badge if needed */}
           <div className="bg-[#2b2b33] p-4 sm:p-6 rounded-lg shadow-md mb-6 sm:mb-8 relative">
             {currentQuestion.isDemo && (
@@ -350,7 +350,7 @@ export function Quiz() {
           </div>
           
           {/* Options grid - responsive based on screen size */}
-          <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
+          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 max-w-full mx-auto w-full">
             {currentQuestion.options.map((option) => (
               <QRCodeOption
                 key={option.id}

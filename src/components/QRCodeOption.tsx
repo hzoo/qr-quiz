@@ -50,25 +50,27 @@ function QRCodeOptionImpl({
   
   return (
     <div
-      className={`p-4 rounded-lg ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
+      className={`p-3 sm:p-4 rounded-lg ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
       onClick={handleClick}
     >
-      {/* Option text */}
-      <div className="text-sm sm:text-base font-medium text-[#ebebf0] mb-3 text-center">{option.text}</div>
+      {/* Option text with fixed height */}
+      <div className="text-xs sm:text-sm md:text-base font-medium text-[#ebebf0] mb-3 text-center h-14 md:h-16 flex items-center justify-center">
+        <span className="line-clamp-3">{option.text}</span>
+      </div>
       
       {/* QR Code Container - with more space for elements */}
       <div className="relative flex-1 flex items-center justify-center pt-1 pb-8">
-        <div className="bg-white p-2 rounded-md w-full max-w-[85%] aspect-square">
+        <div className="bg-white p-1 sm:p-2 rounded-md w-full max-w-[90%] aspect-square">
           <QRCode value={qrValue} className="w-full h-full" />
         </div>
         
-        {/* Badge */}
-        <div className="absolute -top-1 right-5 w-6 h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-sm font-bold shadow-sm">
+        {/* Badge - positioned consistently */}
+        <div className="absolute -top-2 -right-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm">
           {optionLetter}
         </div>
         
-        {/* Scan text - moved up slightly */}
-        <div className="absolute bottom-0 left-0 right-0 text-center text-xs text-[#ebebf0]/60">
+        {/* Scan text */}
+        <div className="absolute bottom-1 left-0 right-0 text-center text-xs text-[#ebebf0]/60">
           scan or tap
         </div>
       </div>
