@@ -1,0 +1,14 @@
+---
+description: global state management
+globs: *.ts
+alwaysApply: false
+---
+## signals usage
+```ts
+import { signal } from "@preact/signals-react";
+const count = signal(0);
+
+// access with .value, can be used in components
+// think about splitting components to save re-renders
+<button onClick={() => count.value++}>{count.value}</button>;
+```

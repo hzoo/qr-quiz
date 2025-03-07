@@ -1,0 +1,28 @@
+{
+  "name": "barcode-fun",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite"
+  },
+  "dependencies": {
+    "@preact/signals-react": "^3.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-router-dom": "^7.2.0",
+    "uqr": "^0.1.2"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.0.11",
+    "@types/bun": "^1.2.4",
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "bun-plugin-tailwind": "^0.0.15",
+    "react-scan": "^0.2.9",
+    "tailwindcss": "^4.0.11",
+    "typescript": "^5.8.2",
+    "vite": "^6.2.0"
+  }
+}

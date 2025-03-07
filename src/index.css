@@ -1,0 +1,173 @@
+@import "tailwindcss";
+
+:root {
+  --primary: #d8b4a0;
+  --secondary: #86b3d1;
+  --accent: #e9a178;
+  --background: #2b2b33;
+  --surface: #3b3b45;
+  --surface-2: #494952;
+  --text-primary: #ebebf0;
+  --text-secondary: #c5c5d1;
+  --text-tertiary: #a0a0af;
+  --error: #d9a295;
+  --success: #a3c9a8;
+}
+
+html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  background-color: var(--background);
+  color: var(--text-primary);
+  font-family: 'Roboto Mono', monospace;
+}
+
+/* Demo question style */
+.demo-question {
+  position: relative;
+  opacity: 0.9;
+}
+
+.demo-question::before {
+  content: "DEMO";
+  position: absolute;
+  top: -10px;
+  right: 10px;
+  background-color: var(--accent);
+  color: var(--background);
+  font-size: 0.7rem;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 3px;
+  letter-spacing: 0.5px;
+  transform: rotate(2deg);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  z-index: 1;
+}
+
+/* Barcode-inspired stripes for header */
+.barcode-header {
+  position: relative;
+  overflow: hidden;
+}
+
+.barcode-header::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: 
+    repeating-linear-gradient(
+      90deg,
+      transparent,
+      transparent 5px,
+      rgba(216, 180, 160, 0.07) 5px,
+      rgba(216, 180, 160, 0.07) 10px
+    );
+  z-index: 0;
+}
+
+/* Custom focus indicator styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Hide outline for mouse users, but keep it for keyboard users */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Subtle fade-in animation */
+@keyframes subtle-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scan line animation */
+@keyframes scanline {
+  0%, 100% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  10%, 90% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(500%);
+    opacity: 0.8;
+  }
+}
+
+.scanning::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, var(--accent), transparent);
+  animation: scanline 2s ease-in-out infinite;
+}
+
+.fade-in {
+  animation: subtle-fade-in 0.5s ease-out forwards;
+}
+
+/* Stylized scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--primary);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+/* Paper texture overlay */
+.paper-texture {
+  position: relative;
+}
+
+.paper-texture::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADIAAAAyCAMAAAAp4XiDAAAAUVBMVEWFhYWDg4N3d3dtbW17e3t1dXWBgYGHh4d5eXlzc3OLi4ubm5uVlZWPj4+NjY19fX2JiYl/f39ra2uRkZGZmZlpaWmXl5dvb29xcXGTk5NnZ2c4zIgsAAAABXRSTlMXFxcXFxcIN1mk/AAAAJNJREFUeNrt0rkKw0AMBFAtObZ8JDnI/P9fZiMKuXAT06TKvGJYNGC0A0mnYrAmVvP7oQlqIvbjXSQii+CiVS+THbJ6TbL4lTiLXokzOR5s4u0p0IjCq1zEjYwG+9JvkgSpUeZOyYHOUdGByhQ3IGvV7UgGWGurHIAWt3swsOR1UqF8VFECHqQEBVJ7VaQILjoYvgP/J3eYYv0OdQAAAABJRU5ErkJggg==");
+  opacity: 0.02;
+  pointer-events: none;
+}
+
+/* Card styling */
+.cozy-card {
+  background-color: var(--surface);
+  border-radius: 8px;
+  border: 1px solid rgba(216, 180, 160, 0.2);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.cozy-card:hover {
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
