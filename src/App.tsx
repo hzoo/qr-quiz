@@ -1,6 +1,6 @@
 import { memo } from "react";
 import { Quiz } from "@/components/Quiz";
-import { DevTools } from "@/components/DevTools";
+// import { DevTools } from "@/components/DevTools";
 
 // Memo the barcode stripes since they're static
 const BarcodeStripes = memo(() => {
@@ -45,7 +45,7 @@ export default function App() {
 			</main>
 			
 			{/* Add DevTools - hidden by default, press Alt+D to show */}
-			<DevTools />
+			{/* <DevTools /> */}
 		</div>
 	);
 }

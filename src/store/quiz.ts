@@ -49,9 +49,34 @@ const defaultQuestions: Question[] = [
   },
 ];
 
+// Queue for the next set of questions
+export const nextQuestionsQueue = signal<Question[]>([]);
+
+// Check localStorage for saved questions
+const loadQuestionsFromStorage = (): Question[] => {
+  try {
+    const savedQuestions = localStorage.getItem('savedQuestions');
+    if (savedQuestions) {
+      return JSON.parse(savedQuestions);
+    }
+  } catch (error) {
+    console.error('Error loading questions from localStorage:', error);
+  }
+  return defaultQuestions;
+};
+
+// Save questions to localStorage
+const saveQuestionsToStorage = (questions: Question[]) => {
+  try {
+    localStorage.setItem('savedQuestions', JSON.stringify(questions));
+  } catch (error) {
+    console.error('Error saving questions to localStorage:', error);
+  }
+};
+
 // Initial quiz state
 const initialQuizState: QuizState = {
-  questions: defaultQuestions,
+  questions: loadQuestionsFromStorage(),
   currentQuestionIndex: 0,
   score: 0,
   showResult: false,
@@ -59,29 +84,32 @@ const initialQuizState: QuizState = {
   isCorrect: null,
   isLoading: false,
   error: null,
+  userAnswers: {},
 };
 
 // Create signals
 export const quizState = signal<QuizState>(initialQuizState);
 export const geminiModel = signal<string>("gemini-2.0-flash-lite");
 
-// Gemini API call to generate questions
+// Generate new questions and queue them
 export async function generateQuestions(count = 4) {
+  // If we're already in results view, generate for next queue
+  // Otherwise generate for current quiz (if it's the first run)
+  const currentState = quizState.value;
+  
+  // Set loading state
+  if (!currentState.showResult) {
+    quizState.value = { ...currentState, isLoading: true, error: null };
+  }
+  
   try {
-    // Set loading flag but keep current questions
-    quizState.value = {
-      ...quizState.value,
-      isLoading: true,
-      error: null,
-    };
-
     const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
     if (!apiKey) {
       throw new Error("Gemini API key not found. Please set VITE_GEMINI_API_KEY in your environment.");
     }
 
     const prompt = `Generate ${count} creative multiple-choice trivia questions with 4 options each. For each question, exactly one option should be correct.
-    
+     
 Make questions fun, unusual, and thought-provoking - avoid basic facts that everyone knows. Include questions about theology, art, science, and technology. Feel free to include some barcode trivia since this will be answered using a barcode scanner!
 
 Format the response as a valid JSON array of questions with this exact structure:
@@ -146,34 +174,73 @@ Make questions diverse, challenging, and engaging. Each should have one and only
     
     // Map the questions to our format with IDs
     const newQuestions: Question[] = questionsData.map((q: {text: string, options: Array<{text: string, isCorrect: boolean}>}, qIndex: number) => ({
-      id: `q${qIndex + 1}`,
+      id: `q${qIndex + 4}`, // Start from q4 since we have q1-q3 as defaults
       text: q.text,
       options: q.options.map((o, oIndex: number) => ({
-        id: `q${qIndex + 1}${String.fromCharCode(97 + oIndex)}`, // a, b, c, d
+        id: `q${qIndex + 4}${String.fromCharCode(97 + oIndex)}`, // a, b, c, d
         text: o.text,
         isCorrect: o.isCorrect,
       })),
       isDemo: false, // These are real questions, not demos
     }));
-
-    // Update with the new questions but preserve other state
-    quizState.value = {
-      ...quizState.value,
-      questions: newQuestions,
-      isLoading: false,
-      // Only reset the index if we're not already in a quiz
-      currentQuestionIndex: quizState.value.showResult ? 0 : quizState.value.currentQuestionIndex,
-    };
-
+    
+    // Save to localStorage for persistence
+    saveQuestionsToStorage(newQuestions);
+    
+    // If we're on results screen, queue for next quiz
+    // Otherwise update the current quiz
+    if (currentState.showResult) {
+      nextQuestionsQueue.value = newQuestions;
+    } else {
+      quizState.value = {
+        ...quizState.value,
+        questions: newQuestions,
+        isLoading: false,
+      };
+    }
+    
     return newQuestions;
   } catch (error) {
     console.error("Error generating questions:", error);
     
-    quizState.value = {
-      ...quizState.value,
-      isLoading: false,
-      error: error instanceof Error ? error.message : "Unknown error generating questions",
-    };
+    // Update error state if not in results view
+    if (!currentState.showResult) {
+      quizState.value = {
+        ...quizState.value,
+        isLoading: false,
+        error: error instanceof Error ? error.message : "Failed to load questions. Please try again.",
+      };
+    }
+    
+    // If API fails, provide fallback questions in development
+    if (import.meta.env.DEV) {
+      const fallbackQuestions: Question[] = [
+        {
+          id: "q4", 
+          text: "Which of these is NOT a noble gas?",
+          options: [
+            { id: "q4a", text: "Helium", isCorrect: false },
+            { id: "q4b", text: "Nitrogen", isCorrect: true },
+            { id: "q4c", text: "Neon", isCorrect: false },
+            { id: "q4d", text: "Argon", isCorrect: false },
+          ]
+        },
+        // Add a few more fallback questions
+      ];
+      
+      // Use fallback in dev mode
+      if (currentState.showResult) {
+        nextQuestionsQueue.value = fallbackQuestions;
+      } else {
+        quizState.value = {
+          ...quizState.value,
+          questions: fallbackQuestions,
+          isLoading: false,
+        };
+      }
+      
+      return fallbackQuestions;
+    }
     
     return null;
   }
@@ -188,12 +255,25 @@ export function answerQuestion(answerId: string) {
   if (!selectedOption) return;
   
   const isCorrect = selectedOption.isCorrect;
+  const newAnswers = {
+    ...currentState.userAnswers,
+    [currentQuestion.id]: answerId
+  };
   
+  // Calculate score based on all correct answers
+  const newScore = Object.entries(newAnswers).filter(([questionId]) => {
+    const question = currentState.questions.find(q => q.id === questionId);
+    const userOption = question?.options.find(o => o.id === newAnswers[questionId]);
+    return userOption?.isCorrect;
+  }).length;
+  
+  // Update state with new answer and score
   quizState.value = {
     ...currentState,
-    score: isCorrect ? currentState.score + 1 : currentState.score,
+    score: newScore,
     lastAnswer: answerId,
     isCorrect,
+    userAnswers: newAnswers
   };
   
   // Move to next question after a delay
@@ -217,12 +297,26 @@ export function answerQuestion(answerId: string) {
 
 // Action to restart the quiz
 export function restartQuiz() {
-  // Reset to initial state and generate new questions
+  // Check if we have queued questions
+  const nextQuestions = nextQuestionsQueue.value.length > 0 
+    ? nextQuestionsQueue.value 
+    : loadQuestionsFromStorage();
+  
+  // Reset to initial state with next questions (completely fresh state)
   quizState.value = {
     ...initialQuizState,
-    questions: defaultQuestions, // Start with default questions
+    questions: nextQuestions,
+    userAnswers: {}, // Completely reset answers
+    currentQuestionIndex: 0,
+    score: 0,
+    showResult: false,
+    lastAnswer: null,
+    isCorrect: null,
   };
   
-  // Generate new questions in the background
-  generateQuestions();
+  // Clear the queue
+  nextQuestionsQueue.value = [];
+  
+  // We'll handle question generation in the Quiz component to avoid
+  // unnecessarily showing the loading indicator when resetting
 } 

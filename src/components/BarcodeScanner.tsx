@@ -56,7 +56,7 @@ function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
 
   // Handle barcode input
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
-    console.log("handleKeyDown", e.key);
+    console.log("key", e.key);
     // Reset timeout on each keypress
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
@@ -98,7 +98,7 @@ function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
       />
       
       {/* Status indicator */}
-      <div className="fixed -bottom-2 right-4 p-3 shadow-md rounded-lg bg-white z-50 flex items-center gap-2">
+      <div className="fixed bottom-2 right-4 p-3 shadow-md rounded-lg bg-white z-50 flex items-center gap-2">
         <div className={`w-3 h-3 rounded-full ${isFocused ? 'bg-green-500' : 'bg-red-500'}`} />
         <span className="text-xs font-medium text-gray-700">
           {isFocused ? 'Scanner Ready' : 'Click anywhere to activate scanner'}

@@ -20,4 +20,5 @@ export type QuizState = {
   isCorrect: boolean | null;
   isLoading: boolean;
   error: string | null;
+  userAnswers: Record<string, string>;
 }; 
