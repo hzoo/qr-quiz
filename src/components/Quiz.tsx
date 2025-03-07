@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useSignalEffect, useSignals, useSignal } from "@preact/signals-react/runtime";
-import { quizState, answerQuestion, restartQuiz, generateQuestions, nextQuestionsQueue } from "@/store/quiz";
+import { quizState, answerQuestion, restartQuiz, generateQuestions, nextQuestionsQueue, initQuiz } from "@/store/quiz";
 import { QRCodeOption } from "./QRCodeOption";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { QRCode } from "./QRCode";
@@ -37,15 +37,15 @@ export function Quiz() {
   
   // Initial question load if needed
   useEffect(() => {
-    // Only generate on first load if we need to
-    if (questions.length === 0 && !isLoading && !isGeneratingNewQuestions.value) {
-      console.log('Initial questions generation');
+    // Only initialize on first load if we need to
+    if (questions.length === 0 && !isGeneratingNewQuestions.value) {
+      console.log('Initializing quiz with questions');
       isGeneratingNewQuestions.value = true;
-      generateQuestions().finally(() => {
+      initQuiz().finally(() => {
         isGeneratingNewQuestions.value = false;
       });
     }
-  }, [questions.length, isLoading, isGeneratingNewQuestions]);
+  }, [questions.length, isGeneratingNewQuestions]);
   
   // Handle queuing of new questions when at results screen
   useEffect(() => {
