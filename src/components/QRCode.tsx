@@ -19,15 +19,21 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
         const svgString = renderSVG(value);
         qrRef.current.innerHTML = svgString;
         
-        // Adjust SVG size - now using 100% of container width
+        // Improve SVG sizing and scaling
         const svg = qrRef.current.querySelector('svg');
         if (svg) {
+          // Better approach to preserve QR code proportions while fitting container
           svg.setAttribute('width', '100%');
           svg.setAttribute('height', '100%');
+          svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
           
-          // Remove the viewBox attribute completely to let it scale naturally
-          // The QR code generator already provides correct dimensions
-          svg.removeAttribute('viewBox');
+          // Instead of removing viewBox, set it to the original QR code dimensions
+          // This ensures proper scaling within the container
+          const width = svg.getAttribute('width') || '256';
+          const height = svg.getAttribute('height') || '256';
+          if (!svg.hasAttribute('viewBox')) {
+            svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+          }
         }
         
         // Clear any previous errors
@@ -40,17 +46,13 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
   }, [value]);
 
   return (
-    <div className={`flex flex-col items-center ${className}`}>
+    <div className={`flex items-center justify-center ${className}`}>
       {error ? (
         <div className="p-3 bg-red-100 text-red-800 rounded-lg">
           {error}
         </div>
       ) : (
-        <div 
-          ref={qrRef} 
-          className="bg-white rounded-lg shadow-md w-full h-full aspect-square" 
-          style={{ minWidth: `${size}px`, minHeight: `${size}px` }}
-        />
+        <div ref={qrRef} className="w-full h-full flex-1" />
       )}
     </div>
   );

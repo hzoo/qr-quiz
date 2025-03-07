@@ -50,32 +50,26 @@ function QRCodeOptionImpl({
   
   return (
     <div
-      className={`p-3 sm:p-4 md:p-5 rounded-lg ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture w-full h-full`}
+      className={`p-4 rounded-lg ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
       onClick={handleClick}
     >
-      <div className="flex flex-col items-center h-full">
-        <div className="text-sm sm:text-base font-medium text-[#ebebf0] mb-2 sm:mb-3 text-center">{option.text}</div>
+      {/* Option text */}
+      <div className="text-sm sm:text-base font-medium text-[#ebebf0] mb-3 text-center">{option.text}</div>
+      
+      {/* QR Code Container - with more space for elements */}
+      <div className="relative flex-1 flex items-center justify-center pt-1 pb-8">
+        <div className="bg-white p-2 rounded-md w-full max-w-[85%] aspect-square">
+          <QRCode value={qrValue} className="w-full h-full" />
+        </div>
         
-        {/* QR Code with badge */}
-        <div className="relative w-full flex-1 flex flex-col items-center justify-center">
-          {/* QR Code Container */}
-          <div className="bg-white p-2 rounded-md shadow-sm overflow-hidden scanning w-full aspect-square">
-            <QRCode 
-              value={qrValue} 
-              size={110}
-              className="w-full h-full" 
-            />
-          </div>
-          
-          {/* Option Badge */}
-          <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-xs font-bold z-10 shadow-sm">
-            {optionLetter}
-          </div>
-          
-          {/* Scan instruction - now below the QR code */}
-          <div className="mt-2 text-center text-xs text-[#ebebf0]/60">
-            scan or tap
-          </div>
+        {/* Badge */}
+        <div className="absolute -top-1 right-5 w-6 h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-sm font-bold shadow-sm">
+          {optionLetter}
+        </div>
+        
+        {/* Scan text - moved up slightly */}
+        <div className="absolute bottom-0 left-0 right-0 text-center text-xs text-[#ebebf0]/60">
+          scan or tap
         </div>
       </div>
     </div>
