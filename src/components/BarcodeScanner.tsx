@@ -56,6 +56,7 @@ function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
 
   // Handle barcode input
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLInputElement>) => {
+    console.log("handleKeyDown", e.key);
     // Reset timeout on each keypress
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);

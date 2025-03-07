@@ -1,13 +1,26 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSignalEffect, useSignals } from "@preact/signals-react/runtime";
 import { quizState, answerQuestion, restartQuiz, generateQuestions } from "@/store/quiz";
 import { QRCodeOption } from "./QRCodeOption";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { QRCode } from "./QRCode";
 
+// Special command QR codes
+const QR_COMMANDS = {
+  RESET: "cmd:reset",
+  SHOW_ANSWERS: "cmd:answers",
+  HIDE_ANSWERS: "cmd:hide_answers"
+};
+
 export function Quiz() {
   // Required for signals to work in React
   useSignals();
+  
+  // Local state for showing answers in results screen
+  const [showingAnswers, setShowingAnswers] = useState(false);
+  
+  // Track user answers for review
+  const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
   
   // Load questions on first render
   useEffect(() => {
@@ -32,14 +45,39 @@ export function Quiz() {
   
   // Handle barcode scan
   const handleScan = (value: string) => {
-    // If we're showing the results, restart on any scan
-    if (showResult) {
+    // Handle special command QR codes
+    if (value === QR_COMMANDS.RESET) {
       restartQuiz();
+      setUserAnswers({});
       return;
     }
     
-    // Otherwise, answer the current question
+    if (value === QR_COMMANDS.SHOW_ANSWERS) {
+      setShowingAnswers(true);
+      return;
+    }
+    
+    if (value === QR_COMMANDS.HIDE_ANSWERS) {
+      setShowingAnswers(false);
+      return;
+    }
+    
+    // If we're showing the results, special QR codes were handled above
+    // Any other QR code will restart the quiz
+    if (showResult) {
+      restartQuiz();
+      setUserAnswers({});
+      return;
+    }
+    
+    // Otherwise, answer the current question and track the answer
     answerQuestion(value);
+    
+    // Record the user's answer for this question
+    setUserAnswers(prev => ({
+      ...prev,
+      [currentQuestion.id]: value
+    }));
   };
   
   // Use effect to refocus scanner when questions change
@@ -55,6 +93,13 @@ export function Quiz() {
       }, 100);
     }
   });
+
+  // Reset showing answers state when quiz restarts
+  useEffect(() => {
+    if (!showResult) {
+      setShowingAnswers(false);
+    }
+  }, [showResult]);
 
   // Error notification
   const errorNotification = error ? (
@@ -78,23 +123,94 @@ export function Quiz() {
       <div className="max-w-4xl mx-auto p-6 fade-in" onClick={(e) => e.stopPropagation()}>
         <BarcodeScanner onScan={handleScan} />
         
-        <div className="text-center cozy-card p-8 rounded-xl paper-texture">
-          <h2 className="text-3xl font-bold mb-4 text-[#d8b4a0]">Quiz Complete!</h2>
-          <p className="text-xl mb-6 text-[#ebebf0]">
+        <div className="text-center cozy-card p-6 rounded-xl paper-texture">
+          <h2 className="text-2xl font-bold mb-2 text-[#d8b4a0]">Quiz Complete!</h2>
+          <p className="text-lg mb-6 text-[#ebebf0]">
             Your score: <span className="font-bold text-[#86b3d1]">{score}</span> out of {questions.length}
           </p>
           
-          <div className="mt-8 p-6 bg-[#333339] rounded-lg flex flex-col items-center border border-[#d8b4a0] shadow-md">
-            <p className="text-lg mb-4 text-[#ebebf0]">Scan this code to restart</p>
-            
-            <div className="bg-[#3b3b45] p-4 rounded-lg shadow-md">
-              <QRCode value="reset-quiz" size={160} label="Reset Quiz" />
+          {/* QR Code Control Row */}
+          <div className="flex justify-center gap-8 mb-6">
+            {/* Reset Quiz QR Code */}
+            <div className="text-center">
+              <button 
+                onClick={() => handleScan(QR_COMMANDS.RESET)}
+                className="bg-[#3b3b45] p-3 rounded-md shadow-md overflow-hidden scanning hover:bg-[#45454f] transition-colors"
+              >
+                <QRCode 
+                  value={QR_COMMANDS.RESET} 
+                  size={150} 
+                />
+              </button>
+              <p className="text-xs mt-2 text-[#c5c5d1]">Restart Quiz</p>
             </div>
             
-            <p className="text-sm mt-4 text-[#a0a0af]">
-              (Any QR code will restart the quiz)
-            </p>
+            {/* Show/Hide Answers QR Code */}
+            <div className="text-center">
+              <button 
+                onClick={() => handleScan(showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS)}
+                className="bg-[#3b3b45] p-3 rounded-md shadow-md overflow-hidden scanning hover:bg-[#45454f] transition-colors"
+              >
+                <QRCode 
+                  value={showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS} 
+                  size={150} 
+                />
+              </button>
+              <p className="text-xs mt-2 text-[#c5c5d1]">
+                {showingAnswers ? 'Hide Answers' : 'Show Answers'}
+              </p>
+            </div>
           </div>
+          
+          {/* Answer Review Section - only shown when toggled on */}
+          {showingAnswers && (
+            <div className="mb-4 max-h-[400px] overflow-y-auto border border-[#494952] rounded-lg p-3 bg-[#333339]">
+              <h3 className="text-sm font-semibold text-[#86b3d1] mb-2 text-center">Answer Review</h3>
+              
+              <div className="space-y-3">
+                {questions.map((question, index) => {
+                  const correctOption = question.options.find(opt => opt.isCorrect);
+                  const userAnswerId = userAnswers[question.id];
+                  const userOption = userAnswerId 
+                    ? question.options.find(opt => opt.id === userAnswerId) 
+                    : null;
+                  const isCorrect = userOption?.isCorrect || false;
+                  
+                  return (
+                    <div key={question.id} className="p-2 bg-[#3b3b45] rounded-lg text-left">
+                      <p className="text-xs font-medium text-[#c5c5d1] mb-1">
+                        {index + 1}. {question.text}
+                      </p>
+                      
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center">
+                          <span className="inline-block w-4 h-4 bg-[#313b34] rounded-full flex items-center justify-center mr-1">
+                            <span className="text-[0.6rem] text-[#a3c9a8]">✓</span>
+                          </span>
+                          <span className="text-[#a3c9a8]">{correctOption?.text}</span>
+                        </div>
+                        
+                        {userOption && (
+                          <div className="flex items-center">
+                            <span className={`text-xs ${isCorrect ? 'text-[#a3c9a8]' : 'text-[#d9a295]'}`}>
+                              You: {userOption.text}
+                            </span>
+                            <span className="ml-1">
+                              {isCorrect ? '✓' : '✗'}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+          
+          <p className="text-sm text-[#a0a0af] mt-3">
+            Scan any QR code to restart the quiz
+          </p>
         </div>
       </div>
     );

@@ -82,7 +82,7 @@ export async function generateQuestions(count = 4) {
 
     const prompt = `Generate ${count} creative multiple-choice trivia questions with 4 options each. For each question, exactly one option should be correct.
     
-Make questions fun, unusual, and thought-provoking - avoid basic facts that everyone knows. Include questions about music, art, science, obscure history, and pop culture.
+Make questions fun, unusual, and thought-provoking - avoid basic facts that everyone knows. Include questions about theology, art, science, and technology. Feel free to include some barcode trivia since this will be answered using a barcode scanner!
 
 Format the response as a valid JSON array of questions with this exact structure:
 [
