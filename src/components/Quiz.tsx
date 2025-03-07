@@ -350,7 +350,7 @@ export function Quiz() {
           </div>
           
           {/* Options grid - responsive based on screen size */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 max-w-5xl mx-auto w-full">
             {currentQuestion.options.map((option) => (
               <QRCodeOption
                 key={option.id}

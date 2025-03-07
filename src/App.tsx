@@ -27,7 +27,7 @@ BarcodeStripes.displayName = "BarcodeStripes";
 export default function App() {
 	return (
 		<div className="min-h-screen bg-[#2b2b33] p-4 paper-texture">
-			<header className="max-w-4xl mx-auto mb-8 text-center barcode-header">
+			<header className="mx-auto mb-2 text-center barcode-header">
 				<h1 className="text-4xl font-bold text-[#d8b4a0] mb-3 relative z-10 fade-in">Barcode Quiz</h1>
 				<div className="flex justify-center items-center gap-3 mb-5">
 					<div className="h-px w-20 bg-[#86b3d1] opacity-50" />

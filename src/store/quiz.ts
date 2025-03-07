@@ -144,29 +144,36 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
     // Generate new questions if pool is empty
     const batchSize = Math.max(6, count); // Reduced batch size to avoid truncation
     
-    // Simplified prompt for better JSON formatting
-    const prompt = `Create ${batchSize} challenging multiple-choice trivia questions with 4 answer options each. Format as JSON.
+    // Interesting prompt for diverse and thought-provoking questions
+    const prompt = `Create ${batchSize} genuinely interesting and thought-provoking trivia questions that will surprise and engage users.
 
-Each question must have:
-- A "text" field with the question
-- An "options" array with 4 items 
-- Each option has "text" and "isCorrect" (boolean)
-- EXACTLY ONE option must have isCorrect:true
+Make questions fun, unusual, and thought-provoking - AVOID basic facts that everyone knows.
+Include a diverse mix from these categories:
+- Theology and philosophy (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)
+- Art and literature (surprising facts about masterpieces, writers' lives)
+- Science (cutting-edge discoveries, counterintuitive findings)
+- Technology (inventions that changed history, unusual tech facts)
+- Barcode and QR code trivia (since users will be scanning with a barcode scanner)
 
-Example format:
+Each question MUST be:
+1. Novel and surprising - something most people wouldn't know
+2. Intellectually engaging - makes people think "wow, that's interesting!"
+3. Well-structured with 4 plausible options (only ONE correct)
+
+Format as JSON:
 [
   {
-    "text": "What is the capital of France?",
+    "text": "Which philosopher proposed the concept of the 'Übermensch' or 'Superman'?",
     "options": [
-      {"text": "London", "isCorrect": false},
-      {"text": "Paris", "isCorrect": true},
-      {"text": "Berlin", "isCorrect": false},
-      {"text": "Madrid", "isCorrect": false}
+      {"text": "Immanuel Kant", "isCorrect": false},
+      {"text": "Friedrich Nietzsche", "isCorrect": true},
+      {"text": "Jean-Paul Sartre", "isCorrect": false},
+      {"text": "Søren Kierkegaard", "isCorrect": false}
     ]
   }
 ]
 
-IMPORTANT: Return ONLY valid JSON. No introduction, explanation, or markdown.`;
+IMPORTANT: Return VALID JSON only. No additional text before or after the JSON array.`;
 
     // Use standard API call without schema configuration
     const response = await fetch(
@@ -469,7 +476,7 @@ export function answerQuestion(answerId: string) {
     userAnswers: newAnswers
   };
   
-  // Move to next question after a delay
+  // Move to next question after a shorter delay (800ms instead of 1500ms)
   setTimeout(() => {
     const nextIndex = currentState.currentQuestionIndex + 1;
     if (nextIndex < currentState.questions.length) {
@@ -485,7 +492,7 @@ export function answerQuestion(answerId: string) {
         showResult: true,
       };
     }
-  }, 1500);
+  }, 800); // Reduced from 1500ms to 800ms for better pacing
 }
 
 // Action to restart the quiz
