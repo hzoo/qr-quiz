@@ -16,11 +16,12 @@ function QRCodeOptionImpl({
   isSelected = false, 
   isCorrect = null 
 }: QRCodeOptionProps) {
-  // The QR code will contain the option ID which gets scanned
-  const qrValue = option.id;
+  // Extract just the last part (letter) from the ID for the QR code
+  // If format is q0_A, this will extract just "A"
+  const simpleScanCode = option.id.split('_').pop() || option.id;
   
-  // Get the option letter (a, b, c, d)
-  const optionLetter = option.id.charAt(option.id.length - 1).toUpperCase();
+  // Get the option letter (A, B, C, D) for display
+  const optionLetter = simpleScanCode.toUpperCase();
   
   // Handle manual click (for testing without a scanner)
   const handleClick = () => {
@@ -61,11 +62,11 @@ function QRCodeOptionImpl({
       {/* QR Code Container - with more space for elements */}
       <div className="relative flex-1 flex items-center justify-center pt-1 pb-8">
         <div className="bg-white p-1 sm:p-2 rounded-md w-full max-w-[90%] aspect-square">
-          <QRCode value={qrValue} className="w-full h-full" />
+          <QRCode value={simpleScanCode} className="w-full h-full" />
         </div>
         
         {/* Badge - positioned consistently */}
-        <div className="absolute -top-2 -right-0 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm">
+        <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm">
           {optionLetter}
         </div>
         
@@ -79,7 +80,6 @@ function QRCodeOptionImpl({
 }
 
 // Custom comparison function for memo
-// Only re-render if these specific props change
 function areEqual(prevProps: QRCodeOptionProps, nextProps: QRCodeOptionProps) {
   return (
     prevProps.option.id === nextProps.option.id &&

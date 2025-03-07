@@ -136,10 +136,21 @@ export function Quiz() {
     
     // Answer the current question
     if (currentQuestion) {
-      // Find if this matches any of the current question's option IDs
-      const option = currentQuestion.options.find((o) => o.id === value);
-      if (option) {
-        answerQuestion(option.id);
+      // First try to find by exact ID match
+      let matchedOption = currentQuestion.options.find(o => o.id === value);
+      
+      // If no match found, try to match by the simple code (just the option letter)
+      if (!matchedOption) {
+        const simpleCode = value.trim().toUpperCase();
+        matchedOption = currentQuestion.options.find(o => {
+          // Extract letter part from ID (e.g., "A" from "q0_A")
+          const optionLetter = o.id.split('_').pop()?.toUpperCase() || '';
+          return optionLetter === simpleCode;
+        });
+      }
+      
+      if (matchedOption) {
+        answerQuestion(matchedOption.id);
       } else {
         console.log("Scanned value doesn't match any option for the current question");
       }

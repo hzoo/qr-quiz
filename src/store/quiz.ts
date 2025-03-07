@@ -360,16 +360,22 @@ IMPORTANT: Return VALID JSON only. No additional text before or after the JSON a
     }
     
     // Map the questions to our format with IDs
-    const newQuestions: Question[] = validQuestions.map((q, qIndex) => ({
-      id: `q${Date.now()}_${qIndex}`, // Use timestamp for truly unique IDs
-      text: q.text,
-      options: q.options.map((o, oIndex) => ({
-        id: `q${Date.now()}_${qIndex}_${oIndex}`, // Unique IDs for options too
-        text: o.text,
-        isCorrect: o.isCorrect,
-      })),
-      isDemo: false,
-    }));
+    const newQuestions: Question[] = validQuestions.map((q, qIndex) => {
+      return {
+        id: `q${qIndex}`, // Simple question ID
+        text: q.text,
+        options: q.options.map((o, oIndex) => {
+          // Use letter representations for options (A, B, C, D)
+          const optionLetter = String.fromCharCode(65 + oIndex); // A=65, B=66, etc.
+          return {
+            id: `q${qIndex}_${optionLetter}`, // Simple option ID
+            text: o.text,
+            isCorrect: o.isCorrect,
+          };
+        }),
+        isDemo: false,
+      };
+    });
     
     console.log(`Generated ${newQuestions.length} new questions`);
     
