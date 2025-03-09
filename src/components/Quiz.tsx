@@ -19,6 +19,9 @@ const QR_COMMANDS = {
 // Add instruction QR code command - shortened
 const QR_INSTRUCTIONS = "c:i";
 
+// Global scanner enabled state using a signal
+const scannerEnabled = signal(true);
+
 export function Quiz() {
   // Required for signals to work in React
   useSignals();
@@ -190,14 +193,30 @@ export function Quiz() {
     setScannerReady(isReady);
   };
   
-  // When there's an error loading questions
-  if (error) {
+  // Function to toggle scanner enabled/disabled
+  const toggleScanner = () => {
+    scannerEnabled.value = !scannerEnabled.value;
+  };
+  
+  // Update BarcodeScanner component to be conditionally rendered based on scannerEnabled
+  const renderBarcodeScanner = () => {
+    if (!scannerEnabled.value) return null;
+    
     return (
-      <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
+      <div className="sr-only">
         <BarcodeScanner 
           onScan={handleScan} 
           onStatusChange={updateScannerStatus}
         />
+      </div>
+    );
+  };
+  
+  // When there's an error loading questions
+  if (error) {
+    return (
+      <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
+        {renderBarcodeScanner()}
         <div className="flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="max-w-4xl w-full bg-[#2b2b33] p-6 rounded-xl shadow-lg">
             <h1 className="text-2xl font-bold text-center text-red-400 mb-6">Error Loading Quiz</h1>
@@ -218,10 +237,7 @@ export function Quiz() {
   if (!currentQuestion) {
     return (
       <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
-        <BarcodeScanner 
-          onScan={handleScan} 
-          onStatusChange={updateScannerStatus}
-        />
+        {renderBarcodeScanner()}
         <div className="flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="max-w-4xl w-full bg-[#2b2b33] p-6 rounded-xl shadow-lg">
             <h1 className="text-2xl font-bold text-center mb-6">No Questions Available</h1>
@@ -244,10 +260,7 @@ export function Quiz() {
 
     return (
       <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
-        <BarcodeScanner 
-          onScan={handleScan} 
-          onStatusChange={updateScannerStatus}
-        />
+        {renderBarcodeScanner()}
         
         {/* Help modal */}
         {helpModalOpen.value && (
@@ -286,39 +299,46 @@ export function Quiz() {
         {/* Compact header */}
         <header className="bg-[#2b2b33] py-2 border-b border-[#3d3d47] relative z-10">
           <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-            {/* Instructions QR code in top left */}
+            {/* Instructions QR code in top left - now clickable */}
             <div className="flex items-center">
-              <div className="relative group">
-                <div className="bg-white p-1 rounded-md w-10 h-10 cursor-pointer hover:scale-105 transition-transform">
+              <div className="relative group cursor-pointer" onClick={() => setHelpModalOpen(true)}>
+                <div className="bg-white p-1 rounded-md w-10 h-10 hover:scale-105 transition-transform">
                   <QRCode 
                     value={QR_INSTRUCTIONS}
                     className="w-full h-full"
                   />
                 </div>
                 <span className="absolute left-0 top-full mt-1 text-xs bg-[#2b2b33] px-1 py-0.5 rounded whitespace-nowrap">
-                  Scan for help
+                  Scan or click for help
                 </span>
               </div>
             </div>
             
             <h1 className="text-xl font-bold">Quiz Results</h1>
             
-            {/* Right-side status and buttons */}
-            <div className="flex items-center gap-3">
-              {/* Scanner status indicator */}
-              <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
-                <div className={`w-2 h-2 rounded-full ${scannerReady ? 'bg-green-500' : 'bg-red-500'}`} />
-                <span className="text-xs">
-                  {scannerReady ? 'Scanner Ready' : 'Click for Scanner'}
-                </span>
+            {/* Right-side status only */}
+            <div className="flex items-center gap-2">
+              {/* Scanner status indicator with toggle */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+                  <div className={`w-2 h-2 rounded-full ${scannerEnabled.value ? (scannerReady ? 'bg-green-500' : 'bg-red-500') : 'bg-gray-500'}`} />
+                  <span className="text-xs">
+                    {scannerEnabled.value ? (scannerReady ? 'Scanner Ready' : 'Click for Scanner') : 'Scanner Off'}
+                  </span>
+                </div>
+                <button 
+                  onClick={toggleScanner}
+                  className={`w-7 h-7 rounded-md flex items-center justify-center ${scannerEnabled.value ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} transition-colors`}
+                  title={scannerEnabled.value ? "Disable Scanner" : "Enable Scanner"}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d={scannerEnabled.value 
+                      ? "M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM20.25 5.507v11.561L5.853 2.671c.15-.043.306-.075.467-.094a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93zM3.75 21V6.932l14.063 14.063L12 18.088l-7.165 3.583A.75.75 0 013.75 21z" 
+                      : "M21.75 17.25v-1.5a.75.75 0 00-.75-.75h-3v-3a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3h-3a.75.75 0 00-.75.75v1.5c0 .414.336.75.75.75h3v3c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75v-3h3a.75.75 0 00.75-.75zM8.25 2.104a.75.75 0 00-.375.656V9.75a.75.75 0 00.75.75h6.375a.75.75 0 01.583 1.223L8.75 19.067a.75.75 0 01-1.251-.337v-6.98a.75.75 0 00-.75-.75H1.057a.75.75 0 01-.656-1.125L7.51 2.104a.75.75 0 01.74 0z"}
+                    />
+                  </svg>
+                </button>
               </div>
-              
-              <button 
-                className="text-sm bg-[#3d3d47] hover:bg-[#4d4d57] px-2.5 py-1.5 rounded-md transition-colors"
-                onClick={() => setHelpModalOpen(true)}
-              >
-                Help
-              </button>
             </div>
           </div>
         </header>
@@ -415,13 +435,7 @@ export function Quiz() {
   // Normal quiz view with question and options
   return (
     <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] relative overflow-hidden">
-      {/* Scanner component with status callback */}
-      <div className="sr-only">
-        <BarcodeScanner 
-          onScan={handleScan} 
-          onStatusChange={updateScannerStatus}
-        />
-      </div>
+      {renderBarcodeScanner()}
       
       {/* Help modal */}
       {helpModalOpen.value && (
@@ -460,17 +474,17 @@ export function Quiz() {
       {/* Compact header with improved progress indicator */}
       <header className="bg-[#2b2b33] py-2 border-b border-[#3d3d47] relative z-10">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
-          {/* Instructions QR code in top left */}
+          {/* Instructions QR code in top left - now clickable */}
           <div className="flex items-center">
-            <div className="relative group">
-              <div className="bg-white p-1 rounded-md w-10 h-10 cursor-pointer hover:scale-105 transition-transform">
+            <div className="relative group cursor-pointer" onClick={() => setHelpModalOpen(true)}>
+              <div className="bg-white p-1 rounded-md w-10 h-10 hover:scale-105 transition-transform">
                 <QRCode 
                   value={QR_INSTRUCTIONS}
                   className="w-full h-full"
                 />
               </div>
               <span className="absolute left-0 top-full mt-1 text-xs bg-[#2b2b33] px-1 py-0.5 rounded whitespace-nowrap">
-                Scan for help
+                Scan or click for help
               </span>
             </div>
           </div>
@@ -496,22 +510,29 @@ export function Quiz() {
             </div>
           </div>
           
-          {/* Right-side buttons with scanner status */}
-          <div className="flex items-center gap-3">
-            {/* Scanner status indicator */}
-            <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
-              <div className={`w-2 h-2 rounded-full ${scannerReady ? 'bg-green-500' : 'bg-red-500'}`} />
-              <span className="text-xs">
-                {scannerReady ? 'Scanner Ready' : 'Click for Scanner'}
-              </span>
+          {/* Right-side with scanner status only */}
+          <div className="flex items-center gap-2">
+            {/* Scanner status indicator with toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+                <div className={`w-2 h-2 rounded-full ${scannerEnabled.value ? (scannerReady ? 'bg-green-500' : 'bg-red-500') : 'bg-gray-500'}`} />
+                <span className="text-xs">
+                  {scannerEnabled.value ? (scannerReady ? 'Scanner Ready' : 'Click for Scanner') : 'Scanner Off'}
+                </span>
+              </div>
+              <button 
+                onClick={toggleScanner}
+                className={`w-7 h-7 rounded-md flex items-center justify-center ${scannerEnabled.value ? 'bg-green-600 hover:bg-green-700' : 'bg-red-600 hover:bg-red-700'} transition-colors`}
+                title={scannerEnabled.value ? "Disable Scanner" : "Enable Scanner"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path d={scannerEnabled.value 
+                    ? "M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM20.25 5.507v11.561L5.853 2.671c.15-.043.306-.075.467-.094a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93zM3.75 21V6.932l14.063 14.063L12 18.088l-7.165 3.583A.75.75 0 013.75 21z" 
+                    : "M21.75 17.25v-1.5a.75.75 0 00-.75-.75h-3v-3a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3h-3a.75.75 0 00-.75.75v1.5c0 .414.336.75.75.75h3v3c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75v-3h3a.75.75 0 00.75-.75zM8.25 2.104a.75.75 0 00-.375.656V9.75a.75.75 0 00.75.75h6.375a.75.75 0 01.583 1.223L8.75 19.067a.75.75 0 01-1.251-.337v-6.98a.75.75 0 00-.75-.75H1.057a.75.75 0 01-.656-1.125L7.51 2.104a.75.75 0 01.74 0z"}
+                  />
+                </svg>
+              </button>
             </div>
-            
-            <button 
-              className="text-sm bg-[#3d3d47] hover:bg-[#4d4d57] px-2.5 py-1.5 rounded-md transition-colors"
-              onClick={() => setHelpModalOpen(true)}
-            >
-              Help
-            </button>
           </div>
         </div>
       </header>
