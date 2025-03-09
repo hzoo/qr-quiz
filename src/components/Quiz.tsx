@@ -343,16 +343,16 @@ export function Quiz() {
             {/* Reorganized layout - grid with answers visible by default */}
             <div className="grid grid-rows-[auto_1fr] h-[calc(100%-60px)] gap-3">
               {/* Top row with QR code */}
-              <div className="mx-auto w-full max-w-xs">
-                {/* Restart Quiz QR Code - full width */}
-                <div className="p-3 bg-[#23232b] rounded-xl shadow-md flex flex-col items-center">
-                  <span className="block text-lg font-medium mb-2 text-center">Restart Quiz</span>
+              <div className="mx-auto w-full max-w-md flex items-center justify-center">
+                {/* Restart Quiz QR Code - bigger size */}
+                <div className="p-4 bg-[#23232b] rounded-xl shadow-md flex flex-col items-center w-full">
+                  <span className="block text-xl font-medium mb-3 text-center">Restart Quiz</span>
                   <div 
-                    className="cursor-pointer bg-white p-3 rounded-lg w-full max-w-[200px] mx-auto" 
+                    className="cursor-pointer bg-white p-4 rounded-lg w-full max-w-[280px] mx-auto" 
                     onClick={() => handleScan(QR_COMMANDS.RESET)}
                   >
                     <QRCode 
-                      size={200}
+                      size={280}
                       value={QR_COMMANDS.RESET} 
                       className="w-full aspect-square"
                     />
