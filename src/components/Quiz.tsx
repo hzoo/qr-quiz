@@ -324,9 +324,9 @@ export function Quiz() {
         </header>
         
         <div className="flex-1 p-4 flex flex-col max-h-[calc(100vh-64px)] overflow-hidden">
-          <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%]">
+          <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%] h-full">
             {/* Score display */}
-            <div className="bg-[#2b2b33] p-4 rounded-lg shadow-md mb-4 text-center">
+            <div className="bg-[#2b2b33] p-3 rounded-lg shadow-md mb-3 text-center">
               <p className="text-xl">
                 <span className="text-2xl font-bold text-[#e9a178]">
                   {Object.entries(userAnswers).filter(([questionId]) => {
@@ -340,61 +340,36 @@ export function Quiz() {
               </p>
             </div>
             
-            {/* Corner layout for action QR codes */}
-            <div className="relative flex-1">
-              <div className="absolute inset-0">
-                {/* Restart Quiz QR Code - Top Left */}
-                <div className="absolute left-[5%] top-[5%] p-4 max-w-[40%] flex flex-col items-center">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-blue-700/10 opacity-30 rounded-3xl pointer-events-none" />
-                  <div className="p-4 bg-[#2b2b33] rounded-xl shadow-md">
-                    <span className="block text-lg font-medium mb-2 text-center">Restart Quiz</span>
-                    <div 
-                      className="w-full cursor-pointer bg-white p-3 rounded-lg" 
-                      onClick={() => handleScan(QR_COMMANDS.RESET)}
-                    >
-                      <QRCode 
-                        size={200}
-                        value={QR_COMMANDS.RESET} 
-                        className="w-full aspect-square"
-                      />
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Toggle Answers QR Code - Top Right */}
-                <div className="absolute right-[5%] top-[5%] p-4 max-w-[40%] flex flex-col items-center">
-                  <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 to-green-700/10 opacity-30 rounded-3xl pointer-events-none" />
-                  <div className="p-4 bg-[#2b2b33] rounded-xl shadow-md">
-                    <span className="block text-lg font-medium mb-2 text-center">
-                      {showingAnswers ? "Hide Answers" : "Show Answers"}
-                    </span>
-                    <div 
-                      className="w-full cursor-pointer bg-white p-3 rounded-lg" 
-                      onClick={() => setShowingAnswers(prev => !prev)}
-                    >
-                      <QRCode 
-                        size={200}
-                        value={showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS} 
-                        className="w-full aspect-square"
-                      />
-                    </div>
+            {/* Reorganized layout - grid with answers visible by default */}
+            <div className="grid grid-rows-[auto_1fr] h-[calc(100%-60px)] gap-3">
+              {/* Top row with QR code */}
+              <div className="mx-auto w-full max-w-xs">
+                {/* Restart Quiz QR Code - full width */}
+                <div className="p-3 bg-[#23232b] rounded-xl shadow-md flex flex-col items-center">
+                  <span className="block text-lg font-medium mb-2 text-center">Restart Quiz</span>
+                  <div 
+                    className="cursor-pointer bg-white p-3 rounded-lg w-full max-w-[200px] mx-auto" 
+                    onClick={() => handleScan(QR_COMMANDS.RESET)}
+                  >
+                    <QRCode 
+                      size={200}
+                      value={QR_COMMANDS.RESET} 
+                      className="w-full aspect-square"
+                    />
                   </div>
                 </div>
               </div>
-            </div>
-            
-            {/* Questions list - Shown only when toggled */}
-            {showingAnswers && (
-              <div className="mt-6 bg-[#2b2b33] p-4 rounded-lg shadow-md overflow-y-auto max-h-[40vh]">
+              
+              {/* Bottom row with answers - always visible in a scrollable container */}
+              <div className="mt-2 bg-[#2b2b33] p-4 rounded-lg shadow-md overflow-y-auto">
                 <h2 className="text-lg font-medium mb-3">Question Answers</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {questions.map((q, idx) => {
-                    const userAnswerId = userAnswers[q.id];
-                    const userOption = q.options.find(o => o.id === userAnswerId);
+                    const userOption = q.options.find(o => o.id === userAnswers[q.id]);
                     const correctOption = q.options.find(o => o.isCorrect);
                     
                     return (
-                      <div key={q.id} className="p-3 rounded-lg bg-[#33333b] flex flex-col">
+                      <div key={q.id} className="p-3 bg-[#23232b] rounded-lg">
                         <div className="flex items-start justify-between gap-2">
                           <p className="font-medium text-base">
                             Q{idx + 1}: {q.text}
@@ -430,7 +405,7 @@ export function Quiz() {
                   })}
                 </div>
               </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
@@ -545,7 +520,7 @@ export function Quiz() {
       <main className="flex-1 p-4 flex flex-col max-h-[calc(100vh-64px)] overflow-hidden">
         <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%]">
           {/* Question with Demo badge if needed - more compact */}
-          <div className="bg-[#2b2b33] p-3 sm:p-4 rounded-lg shadow-md mb-3 relative">
+          <div className="bg-[#2b2b33] p-3 sm:p-4 rounded-lg shadow-md relative">
             {currentQuestion.isDemo && (
               <div className="absolute top-0 right-0 bg-[#e9a178] text-[#1e1e24] px-2 py-1 text-xs font-medium rounded-tr-lg rounded-bl-lg">
                 DEMO
@@ -565,10 +540,10 @@ export function Quiz() {
                 {currentQuestion.options.map((option, index) => {
                   // Position in corners with widescreen optimization
                   const cornerPositions = [
-                    "left-[5%] top-[5%]", // top-left
-                    "right-[5%] top-[5%]", // top-right
-                    "left-[5%] bottom-[5%]", // bottom-left
-                    "right-[5%] bottom-[5%]", // bottom-right
+                    "left-[5%] top-[0%]", // top-left
+                    "right-[5%] top-[0%]", // top-right
+                    "left-[5%] bottom-[0%]", // bottom-left
+                    "right-[5%] bottom-[0%]", // bottom-right
                   ];
                   
                   // Determine corner colors for visual distinction

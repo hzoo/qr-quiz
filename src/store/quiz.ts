@@ -146,7 +146,13 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
     
     // Interesting prompt for diverse and thought-provoking questions
     const categories = [
-      "Theology and philosophy (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)",
+      "Theology (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)",
+      "Concepts, ideas, and history (surprising facts about history, concepts, and ideas)",
+      "Philosophy (phenomenological, existential, the transcendentals, beauty)",
+      "Music theory (surprising facts about music, composers, and history)",
+      "Photography, film, and television (surprising facts about photography, film, and television)",
+      "Internet and social media (surprising facts about the internet, social media, and online culture)",
+      "Programming and computer science (surprising facts about programming, computer science, and technology)",
       "Art and literature (surprising facts about masterpieces, writers' lives)",
       "Science (cutting-edge discoveries, counterintuitive findings)",
       "Technology (inventions that changed history, unusual tech facts)",
