@@ -6,14 +6,18 @@ import { BarcodeScanner } from "./BarcodeScanner";
 import { QRCode } from "./QRCode";
 import { signal, useComputed } from "@preact/signals-react";
 
-// Special command QR codes
+// Special command QR codes - using minimal characters for easier scanning
 const QR_COMMANDS = {
-  PREFIX: "cmd:",
-  RESET: "cmd:reset",
-  SHOW_ANSWERS: "cmd:show_answers",
-  HIDE_ANSWERS: "cmd:hide_answers",
-  ANSWERS: "cmd:answers"
+  PREFIX: "c:",
+  RESET: "c:r",
+  SHOW_ANSWERS: "c:s",
+  HIDE_ANSWERS: "c:h",
+  ANSWERS: "c:a",
+  CLOSE_HELP: "c:c"
 };
+
+// Add instruction QR code command - shortened
+const QR_INSTRUCTIONS = "c:i";
 
 export function Quiz() {
   // Required for signals to work in React
@@ -95,9 +99,21 @@ export function Quiz() {
   });
   
   const handleScan = (value: string) => {
+    // Handle instruction QR code
+    if (value === QR_INSTRUCTIONS) {
+      setHelpModalOpen(true);
+      return;
+    }
+    
+    // Handle close help QR code
+    if (value === QR_COMMANDS.CLOSE_HELP) {
+      setHelpModalOpen(false);
+      return;
+    }
+    
     console.log("Scan value:", value);
     
-    // Handle special commands with prefix "cmd:"
+    // Handle special commands with prefix "c:"
     if (value.startsWith(QR_COMMANDS.PREFIX)) {
       // Handle specific commands
       if (value === QR_COMMANDS.SHOW_ANSWERS) {
@@ -122,7 +138,7 @@ export function Quiz() {
         return;
       }
       
-      // Handle the "cmd:answers" command to show results
+      // Handle the "c:a" command to show results
       if (value === QR_COMMANDS.ANSWERS) {
         quizState.value = {
           ...quizState.value,
@@ -166,11 +182,22 @@ export function Quiz() {
     helpModalOpen.value = isOpen;
   };
   
+  // Add access to the barcode scanner state
+  const [scannerReady, setScannerReady] = useState(true);
+  
+  // Function to update scanner status
+  const updateScannerStatus = (isReady: boolean) => {
+    setScannerReady(isReady);
+  };
+  
   // When there's an error loading questions
   if (error) {
     return (
-      <div className="flex flex-col">
-        <BarcodeScanner onScan={handleScan} />
+      <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
+        <BarcodeScanner 
+          onScan={handleScan} 
+          onStatusChange={updateScannerStatus}
+        />
         <div className="flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="max-w-4xl w-full bg-[#2b2b33] p-6 rounded-xl shadow-lg">
             <h1 className="text-2xl font-bold text-center text-red-400 mb-6">Error Loading Quiz</h1>
@@ -179,7 +206,7 @@ export function Quiz() {
               onClick={() => restartQuiz()}
               className="mx-auto block px-6 py-2 bg-blue-600 text-white rounded-lg shadow"
             >
-              Retry
+              Try Again
             </button>
           </div>
         </div>
@@ -187,11 +214,14 @@ export function Quiz() {
     );
   }
   
-  // When there are no questions (should rarely happen)
+  // When there are no questions available
   if (!currentQuestion) {
     return (
-      <div className="flex flex-col">
-        <BarcodeScanner onScan={handleScan} />
+      <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
+        <BarcodeScanner 
+          onScan={handleScan} 
+          onStatusChange={updateScannerStatus}
+        />
         <div className="flex flex-col items-center justify-center p-4 sm:p-6 md:p-8">
           <div className="max-w-4xl w-full bg-[#2b2b33] p-6 rounded-xl shadow-lg">
             <h1 className="text-2xl font-bold text-center mb-6">No Questions Available</h1>
@@ -213,61 +243,150 @@ export function Quiz() {
     console.log('Questions:', questions.map(q => ({ id: q.id, text: q.text })));
 
     return (
-      <div className="flex flex-col">
-        <BarcodeScanner onScan={handleScan} />
-        <div className="flex flex-col items-center p-2">
-          <div className="max-w-4xl w-full lg:max-w-6xl bg-[#2b2b33] p-6 rounded-xl shadow-lg">
-            <h1 className="text-2xl sm:text-3xl font-bold text-center mb-2">Quiz Results</h1>
-            <p className="text-center text-xl mb-6">
-              <span className="text-2xl sm:text-3xl font-bold">
-                {Object.entries(userAnswers).filter(([questionId]) => {
-                  const question = questions.find(q => q.id === questionId);
-                  const userOption = question?.options.find(o => o.id === userAnswers[questionId]);
-                  return userOption?.isCorrect;
-                }).length}
-              </span>
-              <span className="text-gray-400"> / </span>
-              <span className="text-2xl sm:text-3xl font-bold">{questions.length}</span>
-            </p>
+      <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
+        <BarcodeScanner 
+          onScan={handleScan} 
+          onStatusChange={updateScannerStatus}
+        />
+        
+        {/* Help modal */}
+        {helpModalOpen.value && (
+          <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setHelpModalOpen(false)}>
+            <div className="bg-[#2b2b33] p-5 rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
+              <h2 className="text-xl font-semibold mb-3">Barcode Quiz Help</h2>
+              <p className="mb-3">Scan the QR codes with your barcode scanner to navigate the quiz:</p>
+              <ul className="list-disc pl-5 mb-4 space-y-1">
+                <li>Each QR code represents an answer option</li>
+                <li>The corner position of each QR code matches its option letter</li>
+                <li>Scan the "Restart Quiz" QR code to start over</li>
+                <li>Scan the "Show/Hide Answers" QR code to toggle answer visibility</li>
+              </ul>
+              
+              {/* Close QR code */}
+              <div className="flex flex-col items-center mb-4">
+                <span className="text-sm mb-2">Scan to close help</span>
+                <div className="bg-white p-2 rounded-lg max-w-[120px]">
+                  <QRCode 
+                    value={QR_COMMANDS.CLOSE_HELP}
+                    className="w-full aspect-square"
+                  />
+                </div>
+              </div>
+              
+              <button 
+                className="w-full py-2 bg-[#e9a178] text-[#1e1e24] rounded-lg font-medium"
+                onClick={() => setHelpModalOpen(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
+        
+        {/* Compact header */}
+        <header className="bg-[#2b2b33] py-2 border-b border-[#3d3d47] relative z-10">
+          <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+            {/* Instructions QR code in top left */}
+            <div className="flex items-center">
+              <div className="relative group">
+                <div className="bg-white p-1 rounded-md w-10 h-10 cursor-pointer hover:scale-105 transition-transform">
+                  <QRCode 
+                    value={QR_INSTRUCTIONS}
+                    className="w-full h-full"
+                  />
+                </div>
+                <span className="absolute left-0 top-full mt-1 text-xs bg-[#2b2b33] px-1 py-0.5 rounded whitespace-nowrap">
+                  Scan for help
+                </span>
+              </div>
+            </div>
             
-            <div className="flex flex-col items-center justify-center mb-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 w-full max-w-4xl">
-                {/* Restart Quiz QR Code */}
-                <div className="flex flex-col items-center">
-                  <span className="mb-2 text-base font-medium">Restart Quiz</span>
-                  <div 
-                    className="w-full max-w-[180px] sm:max-w-[200px] lg:max-w-[240px] cursor-pointer bg-white p-2 rounded-lg" 
-                    onClick={() => handleScan(QR_COMMANDS.RESET)}
-                  >
-                    <QRCode 
-                      size={200}
-                      value={QR_COMMANDS.RESET} 
-                      className="w-full aspect-square"
-                    />
+            <h1 className="text-xl font-bold">Quiz Results</h1>
+            
+            {/* Right-side status and buttons */}
+            <div className="flex items-center gap-3">
+              {/* Scanner status indicator */}
+              <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+                <div className={`w-2 h-2 rounded-full ${scannerReady ? 'bg-green-500' : 'bg-red-500'}`} />
+                <span className="text-xs">
+                  {scannerReady ? 'Scanner Ready' : 'Click for Scanner'}
+                </span>
+              </div>
+              
+              <button 
+                className="text-sm bg-[#3d3d47] hover:bg-[#4d4d57] px-2.5 py-1.5 rounded-md transition-colors"
+                onClick={() => setHelpModalOpen(true)}
+              >
+                Help
+              </button>
+            </div>
+          </div>
+        </header>
+        
+        <div className="flex-1 p-4 flex flex-col max-h-[calc(100vh-64px)] overflow-hidden">
+          <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%]">
+            {/* Score display */}
+            <div className="bg-[#2b2b33] p-4 rounded-lg shadow-md mb-4 text-center">
+              <p className="text-xl">
+                <span className="text-2xl font-bold text-[#e9a178]">
+                  {Object.entries(userAnswers).filter(([questionId]) => {
+                    const question = questions.find(q => q.id === questionId);
+                    const userOption = question?.options.find(o => o.id === userAnswers[questionId]);
+                    return userOption?.isCorrect;
+                  }).length}
+                </span>
+                <span className="text-gray-400"> / </span>
+                <span className="text-2xl font-bold">{questions.length}</span>
+              </p>
+            </div>
+            
+            {/* Corner layout for action QR codes */}
+            <div className="relative flex-1">
+              <div className="absolute inset-0">
+                {/* Restart Quiz QR Code - Top Left */}
+                <div className="absolute left-[5%] top-[5%] p-4 max-w-[40%] flex flex-col items-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-blue-600/20 to-blue-700/10 opacity-30 rounded-3xl pointer-events-none" />
+                  <div className="p-4 bg-[#2b2b33] rounded-xl shadow-md">
+                    <span className="block text-lg font-medium mb-2 text-center">Restart Quiz</span>
+                    <div 
+                      className="w-full cursor-pointer bg-white p-3 rounded-lg" 
+                      onClick={() => handleScan(QR_COMMANDS.RESET)}
+                    >
+                      <QRCode 
+                        size={200}
+                        value={QR_COMMANDS.RESET} 
+                        className="w-full aspect-square"
+                      />
+                    </div>
                   </div>
                 </div>
                 
-                {/* Toggle Answers QR Code */}
-                <div className="flex flex-col items-center">
-                  <span className="mb-2 text-base font-medium">
-                    {showingAnswers ? "Hide Answers" : "Show Answers"}
-                  </span>
-                  <div 
-                    className="w-full max-w-[180px] sm:max-w-[200px] lg:max-w-[240px] cursor-pointer bg-white p-2 rounded-lg" 
-                    onClick={() => setShowingAnswers(prev => !prev)}
-                  >
-                    <QRCode 
-                      size={200}
-                      value={showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS} 
-                      className="w-full aspect-square"
-                    />
+                {/* Toggle Answers QR Code - Top Right */}
+                <div className="absolute right-[5%] top-[5%] p-4 max-w-[40%] flex flex-col items-center">
+                  <div className="absolute inset-0 bg-gradient-to-br from-green-600/20 to-green-700/10 opacity-30 rounded-3xl pointer-events-none" />
+                  <div className="p-4 bg-[#2b2b33] rounded-xl shadow-md">
+                    <span className="block text-lg font-medium mb-2 text-center">
+                      {showingAnswers ? "Hide Answers" : "Show Answers"}
+                    </span>
+                    <div 
+                      className="w-full cursor-pointer bg-white p-3 rounded-lg" 
+                      onClick={() => setShowingAnswers(prev => !prev)}
+                    >
+                      <QRCode 
+                        size={200}
+                        value={showingAnswers ? QR_COMMANDS.HIDE_ANSWERS : QR_COMMANDS.SHOW_ANSWERS} 
+                        className="w-full aspect-square"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
             
+            {/* Questions list - Shown only when toggled */}
             {showingAnswers && (
-              <div className="mt-6">
+              <div className="mt-6 bg-[#2b2b33] p-4 rounded-lg shadow-md overflow-y-auto max-h-[40vh]">
+                <h2 className="text-lg font-medium mb-3">Question Answers</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {questions.map((q, idx) => {
                     const userAnswerId = userAnswers[q.id];
@@ -312,22 +431,6 @@ export function Quiz() {
                 </div>
               </div>
             )}
-            
-            <div className="mt-8 text-center">
-              <div className="mb-2 text-sm text-gray-400">
-                {nextQuestionsQueue.value.length > 0 
-                  ? "New questions are ready!" 
-                  : isGeneratingNewQuestions.value 
-                    ? "Preparing next set of questions..."
-                    : "Will generate new questions when you restart"}
-              </div>
-              <button
-                onClick={() => restartQuiz()}
-                className="px-6 py-3 bg-[#e9a178] text-[#1e1e24] font-medium rounded-lg shadow hover:bg-[#d8926a] transition-colors"
-              >
-                Start New Quiz
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -336,64 +439,136 @@ export function Quiz() {
   
   // Normal quiz view with question and options
   return (
-    <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] relative">
-      {/* Scanner component */}
+    <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] relative overflow-hidden">
+      {/* Scanner component with status callback */}
       <div className="sr-only">
-        <BarcodeScanner onScan={handleScan} />
+        <BarcodeScanner 
+          onScan={handleScan} 
+          onStatusChange={updateScannerStatus}
+        />
       </div>
       
-      {/* Rest of the UI */}
-      <header className="bg-[#2b2b33] py-4 border-b border-[#3d3d47] relative z-10">
-        <div className="max-w-7xl mx-auto flex items-center justify-end gap-6">
-          <div className="text-sm sm:text-base">
-            Question <span className="font-bold">{currentQuestionIndex + 1}</span> of <span className="font-bold">{questions.length}</span>
-          </div>
-          <div className="text-sm sm:text-base">
-            Score: <span className="font-bold">{score}</span>
-          </div>
-          {isGeneratingNewQuestions.value && (
-            <div className="flex items-center text-sm text-yellow-400">
-              <div className="w-3 h-3 rounded-full bg-yellow-400 animate-pulse mr-1" />
-              Loading new questions...
+      {/* Help modal */}
+      {helpModalOpen.value && (
+        <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setHelpModalOpen(false)}>
+          <div className="bg-[#2b2b33] p-5 rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
+            <h2 className="text-xl font-semibold mb-3">Barcode Quiz Help</h2>
+            <p className="mb-3">Scan the QR codes with your barcode scanner to navigate the quiz:</p>
+            <ul className="list-disc pl-5 mb-4 space-y-1">
+              <li>Each QR code represents an answer option</li>
+              <li>The corner position of each QR code matches its option letter</li>
+              <li>Top-left (A), Top-right (B), Bottom-left (C), Bottom-right (D)</li>
+              <li>Correct answers turn green, incorrect turn red</li>
+            </ul>
+            
+            {/* Close QR code */}
+            <div className="flex flex-col items-center mb-4">
+              <span className="text-sm mb-2">Scan to close help</span>
+              <div className="bg-white p-2 rounded-lg max-w-[120px]">
+                <QRCode 
+                  value={QR_COMMANDS.CLOSE_HELP}
+                  className="w-full aspect-square"
+                />
+              </div>
             </div>
-          )}
+            
+            <button 
+              className="w-full py-2 bg-[#e9a178] text-[#1e1e24] rounded-lg font-medium"
+              onClick={() => setHelpModalOpen(false)}
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+      
+      {/* Compact header with improved progress indicator */}
+      <header className="bg-[#2b2b33] py-2 border-b border-[#3d3d47] relative z-10">
+        <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
+          {/* Instructions QR code in top left */}
+          <div className="flex items-center">
+            <div className="relative group">
+              <div className="bg-white p-1 rounded-md w-10 h-10 cursor-pointer hover:scale-105 transition-transform">
+                <QRCode 
+                  value={QR_INSTRUCTIONS}
+                  className="w-full h-full"
+                />
+              </div>
+              <span className="absolute left-0 top-full mt-1 text-xs bg-[#2b2b33] px-1 py-0.5 rounded whitespace-nowrap">
+                Scan for help
+              </span>
+            </div>
+          </div>
+          
+          {/* Center progress indicator as badge */}
+          <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center space-x-3">
+            <div className="bg-[#3d3d47] rounded-full px-3 py-1 flex items-center shadow-md">
+              <span className="text-sm font-medium">Question</span>
+              <span className="ml-1 text-base font-bold text-[#e9a178]">{currentQuestionIndex + 1}</span>
+              <span className="mx-1 text-gray-400">/</span>
+              <span className="text-base font-bold">{questions.length}</span>
+            </div>
+            
+            <div className="bg-[#3d3d47] rounded-full px-3 py-1 flex items-center shadow-md">
+              <span className="text-sm font-medium">Score</span>
+              <span className="ml-1 text-base font-bold text-[#e9a178]">{
+                Object.entries(userAnswers).filter(([questionId]) => {
+                  const question = questions.find(q => q.id === questionId);
+                  const userOption = question?.options.find(o => o.id === userAnswers[questionId]);
+                  return userOption?.isCorrect;
+                }).length
+              }</span>
+            </div>
+          </div>
+          
+          {/* Right-side buttons with scanner status */}
+          <div className="flex items-center gap-3">
+            {/* Scanner status indicator */}
+            <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+              <div className={`w-2 h-2 rounded-full ${scannerReady ? 'bg-green-500' : 'bg-red-500'}`} />
+              <span className="text-xs">
+                {scannerReady ? 'Scanner Ready' : 'Click for Scanner'}
+              </span>
+            </div>
+            
+            <button 
+              className="text-sm bg-[#3d3d47] hover:bg-[#4d4d57] px-2.5 py-1.5 rounded-md transition-colors"
+              onClick={() => setHelpModalOpen(true)}
+            >
+              Help
+            </button>
+          </div>
         </div>
       </header>
       
-      {/* Main quiz content */}
-      <main className="flex-1 p-4 sm:p-6 md:p-8 flex flex-col">
+      {/* Main quiz content - optimized height */}
+      <main className="flex-1 p-4 flex flex-col max-h-[calc(100vh-64px)] overflow-hidden">
         <div className="w-full mx-auto flex-1 flex flex-col max-w-5xl 2xl:max-w-[90%]">
-          {/* Question with Demo badge if needed */}
-          <div className="bg-[#2b2b33] p-4 sm:p-6 rounded-lg shadow-md mb-6 sm:mb-8 relative">
+          {/* Question with Demo badge if needed - more compact */}
+          <div className="bg-[#2b2b33] p-3 sm:p-4 rounded-lg shadow-md mb-3 relative">
             {currentQuestion.isDemo && (
               <div className="absolute top-0 right-0 bg-[#e9a178] text-[#1e1e24] px-2 py-1 text-xs font-medium rounded-tr-lg rounded-bl-lg">
                 DEMO
               </div>
             )}
-            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-center font-medium mb-2">{currentQuestion.text}</h2>
-            <p className="text-center text-sm text-gray-400">
-              Scan a barcode or tap an option to answer 
-              <button 
-                className="ml-2 text-[#e9a178] hover:underline focus:outline-none"
-                onClick={() => setHelpModalOpen(true)}
-              >
-                Need help?
-              </button>
+            <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-center font-medium mb-1">{currentQuestion.text}</h2>
+            <p className="text-center text-xs text-gray-400">
+              Scan a barcode or tap an option to answer
             </p>
           </div>
           
-          {/* Options in corner layout for better scanning */}
-          <div className="relative flex-1 w-full min-h-[500px] md:min-h-[600px]">
+          {/* Options in corner layout - optimized for widescreen */}
+          <div className="relative flex-1 w-full">
             {currentQuestion.options.length <= 4 ? (
               /* Corner layout when we have 4 or fewer options */
               <div className="absolute inset-0 flex flex-wrap">
                 {currentQuestion.options.map((option, index) => {
-                  // Position in corners: top-left, top-right, bottom-left, bottom-right
+                  // Position in corners with widescreen optimization
                   const cornerPositions = [
-                    "left-0 top-0", // top-left
-                    "right-0 top-0", // top-right
-                    "left-0 bottom-0", // bottom-left
-                    "right-0 bottom-0", // bottom-right
+                    "left-[5%] top-[5%]", // top-left
+                    "right-[5%] top-[5%]", // top-right
+                    "left-[5%] bottom-[5%]", // bottom-left
+                    "right-[5%] bottom-[5%]", // bottom-right
                   ];
                   
                   // Determine corner colors for visual distinction
@@ -407,7 +582,7 @@ export function Quiz() {
                   return (
                     <div 
                       key={option.id}
-                      className={`absolute ${cornerPositions[index % 4]} p-4 sm:p-6 md:p-8 max-w-[45%] flex flex-col items-center`}
+                      className={`absolute ${cornerPositions[index % 4]} p-3 sm:p-4 max-w-[40%] 2xl:max-w-[30%] flex flex-col items-center`}
                     >
                       <div className={`absolute inset-0 bg-gradient-to-br ${cornerColors[index % 4]} opacity-30 rounded-3xl pointer-events-none`} />
                       <QRCodeOption
@@ -422,7 +597,7 @@ export function Quiz() {
               </div>
             ) : (
               /* Fallback to improved grid for more than 4 options */
-              <div className="grid grid-cols-2 gap-12 md:gap-16 max-w-full mx-auto w-full">
+              <div className="grid grid-cols-2 gap-8 md:gap-12 max-w-full mx-auto w-full">
                 {currentQuestion.options.map((option) => (
                   <QRCodeOption
                     key={option.id}

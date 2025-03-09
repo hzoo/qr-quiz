@@ -2,28 +2,40 @@ import { useEffect, useRef, useState, useCallback, memo } from "react";
 
 type BarcodeScannerProps = {
   onScan: (value: string) => void;
+  onStatusChange?: (isReady: boolean) => void; // Optional callback for scan status
 };
 
-function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
+function BarcodeScannerImpl({ onScan, onStatusChange }: BarcodeScannerProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<number | null>(null);
   const [isFocused, setIsFocused] = useState(true);
 
+  // Update the focus state and callback
+  const updateFocusState = useCallback((focused: boolean) => {
+    setIsFocused(focused);
+    // Notify parent component about status change if callback provided
+    if (onStatusChange) {
+      onStatusChange(focused);
+    }
+  }, [onStatusChange]);
+
   // Memoize event handlers
-  const handleFocusOut = useCallback(() => setIsFocused(false), []);
-  const handleFocusIn = useCallback(() => setIsFocused(true), []);
+  const handleFocusOut = useCallback(() => updateFocusState(false), [updateFocusState]);
+  const handleFocusIn = useCallback(() => updateFocusState(true), [updateFocusState]);
   
   const handleDocumentClick = useCallback(() => {
     if (inputRef.current) {
       inputRef.current.focus();
-      setIsFocused(true);
+      updateFocusState(true);
     }
-  }, []);
+  }, [updateFocusState]);
 
   // Focus the input element when the component mounts
   useEffect(() => {
     if (inputRef.current) {
       inputRef.current.focus();
+      // Initialize status
+      updateFocusState(true);
     }
 
     // When component unmounts, clear the timeout
@@ -32,7 +44,7 @@ function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
         window.clearTimeout(timeoutRef.current);
       }
     };
-  }, []);
+  }, [updateFocusState]);
 
   // Set up document-wide click handler to refocus input
   useEffect(() => {
@@ -97,16 +109,18 @@ function BarcodeScannerImpl({ onScan }: BarcodeScannerProps) {
         aria-label="Barcode Scanner Input"
       />
       
-      {/* Status indicator */}
-      <div className="fixed bottom-2 right-4 p-3 shadow-md rounded-lg bg-white z-50 flex items-center gap-2">
-        <div className={`w-3 h-3 rounded-full ${isFocused ? 'bg-green-500' : 'bg-red-500'}`} />
-        <span className="text-xs font-medium text-gray-700">
-          {isFocused ? 'Scanner Ready' : 'Click anywhere to activate scanner'}
-        </span>
-      </div>
+      {/* No status indicator - moved to parent component */}
     </div>
   );
 }
 
-// Only re-render when onScan function reference changes
-export const BarcodeScanner = memo(BarcodeScannerImpl); 
+// Custom comparison function for memo
+function areEqual(prevProps: BarcodeScannerProps, nextProps: BarcodeScannerProps) {
+  return (
+    prevProps.onScan === nextProps.onScan && 
+    prevProps.onStatusChange === nextProps.onStatusChange
+  );
+}
+
+// Export the memoized version of the component
+export const BarcodeScanner = memo(BarcodeScannerImpl, areEqual); 
