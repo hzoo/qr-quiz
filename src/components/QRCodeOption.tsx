@@ -51,27 +51,38 @@ function QRCodeOptionImpl({
   
   return (
     <div
-      className={`p-3 sm:p-4 rounded-lg ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
+      className={`p-4 sm:p-6 md:p-8 rounded-xl ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
       onClick={handleClick}
     >
       {/* Option text with fixed height */}
-      <div className="text-base sm:text-md md:text-xl lg:text-2xl font-medium text-[#ebebf0] mb-3 text-center h-14 md:h-16 flex items-center justify-center">
+      <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-[#ebebf0] mb-4 text-center flex items-center justify-center">
         <span className="line-clamp-3">{option.text}</span>
       </div>
       
-      {/* QR Code Container - with more space for elements */}
-      <div className="relative flex-1 flex items-center justify-center pt-1 pb-8">
-        <div className="bg-white p-1 sm:p-2 rounded-md w-full max-w-[90%] aspect-square">
+      {/* QR Code Container - larger and more prominent */}
+      <div className="relative flex-1 flex items-center justify-center pt-2 pb-10">
+        {/* Visual corner indicator based on option position */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className={`absolute w-14 h-14 border-4 rounded-md border-[#e9a178] opacity-70 ${
+            optionLetter === 'A' ? 'top-0 left-0 border-r-0 border-b-0' : 
+            optionLetter === 'B' ? 'top-0 right-0 border-l-0 border-b-0' : 
+            optionLetter === 'C' ? 'bottom-0 left-0 border-r-0 border-t-0' : 
+            'bottom-0 right-0 border-l-0 border-t-0'
+          }`} />
+        </div>
+        
+        {/* Larger QR code */}
+        <div className="bg-white p-3 sm:p-4 rounded-lg w-full max-w-[90%] aspect-square border-4 border-white shadow-lg">
           <QRCode value={simpleScanCode} className="w-full h-full" />
         </div>
         
-        {/* Badge - positioned consistently */}
-        <div className="absolute -top-2 -right-2 w-5 h-5 sm:w-6 sm:h-6 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-xs sm:text-sm font-bold shadow-sm">
+        {/* Badge - larger and more prominent */}
+        <div className="absolute -top-3 -right-3 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-lg sm:text-xl font-bold shadow-md ring-2 ring-[#1e1e24]">
           {optionLetter}
         </div>
         
-        {/* Scan text */}
-        <div className="absolute bottom-1 left-0 right-0 text-center text-xs text-[#ebebf0]/60">
+        {/* Scan text - more visible */}
+        <div className="absolute bottom-1 left-0 right-0 text-center text-sm text-[#ebebf0]/80 font-medium">
           scan or tap
         </div>
       </div>

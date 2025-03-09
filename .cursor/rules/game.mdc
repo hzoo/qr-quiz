@@ -1,0 +1,7 @@
+---
+description: rules about the purpose or intent of the project/game/website
+globs: *.ts, *.tsx
+alwaysApply: false
+---
+- the point of the game is to create an experience that involves navigating and playing only through the QR barcode scanner. (mouse click should still work)
+- this means all options, resetting, settings should all work via qr codes.

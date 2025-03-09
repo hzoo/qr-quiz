@@ -4,6 +4,7 @@ import { quizState, answerQuestion, restartQuiz, generateQuestions, nextQuestion
 import { QRCodeOption } from "./QRCodeOption";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { QRCode } from "./QRCode";
+import { signal, useComputed } from "@preact/signals-react";
 
 // Special command QR codes
 const QR_COMMANDS = {
@@ -34,6 +35,9 @@ export function Quiz() {
     error,
     userAnswers
   } = quizState.value;
+  
+  // Add help modal state
+  const helpModalOpen = useSignal(false);
   
   // Initial question load if needed
   useEffect(() => {
@@ -155,6 +159,11 @@ export function Quiz() {
         console.log("Scanned value doesn't match any option for the current question");
       }
     }
+  };
+  
+  // Handle toggling help modal
+  const setHelpModalOpen = (isOpen: boolean) => {
+    helpModalOpen.value = isOpen;
   };
   
   // When there's an error loading questions
@@ -327,11 +336,14 @@ export function Quiz() {
   
   // Normal quiz view with question and options
   return (
-    <div className="flex flex-col">
-      <BarcodeScanner onScan={handleScan} />
+    <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] relative">
+      {/* Scanner component */}
+      <div className="sr-only">
+        <BarcodeScanner onScan={handleScan} />
+      </div>
       
-      {/* Quiz header */}
-      <header className="p-4 sm:p-6 bg-[#2b2b33] shadow-md">
+      {/* Rest of the UI */}
+      <header className="bg-[#2b2b33] py-4 border-b border-[#3d3d47] relative z-10">
         <div className="max-w-7xl mx-auto flex items-center justify-end gap-6">
           <div className="text-sm sm:text-base">
             Question <span className="font-bold">{currentQuestionIndex + 1}</span> of <span className="font-bold">{questions.length}</span>
@@ -359,20 +371,69 @@ export function Quiz() {
               </div>
             )}
             <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl text-center font-medium mb-2">{currentQuestion.text}</h2>
-            <p className="text-center text-sm text-gray-400">Scan a barcode or tap an option to answer</p>
+            <p className="text-center text-sm text-gray-400">
+              Scan a barcode or tap an option to answer 
+              <button 
+                className="ml-2 text-[#e9a178] hover:underline focus:outline-none"
+                onClick={() => setHelpModalOpen(true)}
+              >
+                Need help?
+              </button>
+            </p>
           </div>
           
-          {/* Options grid - responsive based on screen size */}
-          <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 max-w-full mx-auto w-full">
-            {currentQuestion.options.map((option) => (
-              <QRCodeOption
-                key={option.id}
-                option={option}
-                onScan={handleScan}
-                isSelected={option.id === lastAnswer}
-                isCorrect={option.id === lastAnswer ? option.isCorrect : null}
-              />
-            ))}
+          {/* Options in corner layout for better scanning */}
+          <div className="relative flex-1 w-full min-h-[500px] md:min-h-[600px]">
+            {currentQuestion.options.length <= 4 ? (
+              /* Corner layout when we have 4 or fewer options */
+              <div className="absolute inset-0 flex flex-wrap">
+                {currentQuestion.options.map((option, index) => {
+                  // Position in corners: top-left, top-right, bottom-left, bottom-right
+                  const cornerPositions = [
+                    "left-0 top-0", // top-left
+                    "right-0 top-0", // top-right
+                    "left-0 bottom-0", // bottom-left
+                    "right-0 bottom-0", // bottom-right
+                  ];
+                  
+                  // Determine corner colors for visual distinction
+                  const cornerColors = [
+                    "from-blue-600/20 to-blue-700/10", // top-left: blue tint
+                    "from-green-600/20 to-green-700/10", // top-right: green tint
+                    "from-amber-600/20 to-amber-700/10", // bottom-left: amber tint
+                    "from-purple-600/20 to-purple-700/10", // bottom-right: purple tint
+                  ];
+                  
+                  return (
+                    <div 
+                      key={option.id}
+                      className={`absolute ${cornerPositions[index % 4]} p-4 sm:p-6 md:p-8 max-w-[45%] flex flex-col items-center`}
+                    >
+                      <div className={`absolute inset-0 bg-gradient-to-br ${cornerColors[index % 4]} opacity-30 rounded-3xl pointer-events-none`} />
+                      <QRCodeOption
+                        option={option}
+                        onScan={handleScan}
+                        isSelected={option.id === lastAnswer}
+                        isCorrect={option.id === lastAnswer ? option.isCorrect : null}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              /* Fallback to improved grid for more than 4 options */
+              <div className="grid grid-cols-2 gap-12 md:gap-16 max-w-full mx-auto w-full">
+                {currentQuestion.options.map((option) => (
+                  <QRCodeOption
+                    key={option.id}
+                    option={option}
+                    onScan={handleScan}
+                    isSelected={option.id === lastAnswer}
+                    isCorrect={option.id === lastAnswer ? option.isCorrect : null}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </main>
