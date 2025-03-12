@@ -374,14 +374,20 @@ IMPORTANT: Only generate questions for the active (uncommented) categories liste
     
     // Map the questions to our format with IDs
     const newQuestions: Question[] = validQuestions.map((q, qIndex) => {
+      // Generate unique question IDs that won't conflict with the default set
+      // Use 'gq' prefix for generated questions instead of just 'q'
+      // Adding a timestamp component ensures uniqueness across sessions
+      const timestamp = Date.now().toString(36).slice(-4); // Last 4 chars of timestamp in base36
+      const uniqueId = `gq${timestamp}_${qIndex}`;
+      
       return {
-        id: `q${qIndex}`, // Simple question ID
+        id: uniqueId, // Unique question ID with prefix, timestamp and index
         text: q.text,
         options: q.options.map((o, oIndex) => {
           // Use letter representations for options (A, B, C, D)
           const optionLetter = String.fromCharCode(65 + oIndex); // A=65, B=66, etc.
           return {
-            id: `q${qIndex}_${optionLetter}`, // Simple option ID
+            id: `${uniqueId}_${optionLetter}`, // Option ID based on unique question ID
             text: o.text,
             isCorrect: o.isCorrect,
           };

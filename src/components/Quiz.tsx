@@ -563,8 +563,8 @@ export function Quiz() {
                   const cornerPositions = [
                     "left-[5%] top-[0%]", // top-left
                     "right-[5%] top-[0%]", // top-right
-                    "left-[5%] bottom-[0%]", // bottom-left
-                    "right-[5%] bottom-[0%]", // bottom-right
+                    "left-[5%] bottom-[5%]", // bottom-left
+                    "right-[5%] bottom-[5%]", // bottom-right
                   ];
                   
                   // Determine corner colors for visual distinction
