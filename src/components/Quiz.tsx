@@ -5,6 +5,17 @@ import { QRCodeOption } from "./QRCodeOption";
 import { BarcodeScanner } from "./BarcodeScanner";
 import { QRCode } from "./QRCode";
 import { signal, useComputed } from "@preact/signals-react";
+import { 
+  connectionStatus, 
+  initPartyConnection, 
+  getQrCodeUrl, 
+  getCommandQrCodeUrl,
+  addMessageHandler,
+  removeMessageHandler,
+  isRemoteMode,
+  toggleRemoteMode,
+  type MessageData
+} from "@/store/partyConnection";
 
 // Special command QR codes - using minimal characters for easier scanning
 const QR_COMMANDS = {
@@ -29,6 +40,33 @@ export function Quiz() {
   const [showingAnswers, setShowingAnswers] = useState(false);
   const shouldQueueNewQuestions = useSignal(false);
   const isGeneratingNewQuestions = useSignal(false);
+  
+  // Initialize PartyKit connection for remote control
+  useSignalEffect(() => {
+    // Only initialize PartyKit if in remote mode
+    if (isRemoteMode.value) {
+      console.log("Initializing PartyKit in remote mode");
+      // Initialize PartyKit connection
+      initPartyConnection();
+      
+      // Register message handler
+      addMessageHandler(handlePartyKitMessage);
+      
+      // Return cleanup function
+      return () => {
+        console.log("Cleaning up PartyKit connection");
+        // Clean up message handler
+        removeMessageHandler(handlePartyKitMessage);
+      };
+    }
+  });
+  
+  // Handle messages from PartyKit
+  const handlePartyKitMessage = (data: MessageData) => {
+    if (data.type === "selection" && data.option) {
+      handleScan(data.option);
+    }
+  };
   
   // Extract values from quiz state
   const { 
@@ -164,7 +202,13 @@ export function Quiz() {
       
       // If no match found, try to match by the simple code (just the option letter)
       if (!matchedOption) {
-        const simpleCode = value.trim().toUpperCase();
+        // Try to extract the last part after underscore (if any)
+        const lastPart = value.split('_').pop() || value;
+        // Just get the letter part - usually a single letter like A, B, C, D
+        const simpleCode = lastPart.trim().toUpperCase();
+        
+        console.log("Trying to match by simple code:", simpleCode);
+        
         matchedOption = currentQuestion.options.find(o => {
           // Extract letter part from ID (e.g., "A" from "q0_A")
           const optionLetter = o.id.split('_').pop()?.toUpperCase() || '';
@@ -173,6 +217,7 @@ export function Quiz() {
       }
       
       if (matchedOption) {
+        console.log("Matched option:", matchedOption.id);
         answerQuestion(matchedOption.id);
       } else {
         console.log("Scanned value doesn't match any option for the current question");
@@ -208,6 +253,30 @@ export function Quiz() {
           onScan={handleScan} 
           onStatusChange={updateScannerStatus}
         />
+      </div>
+    );
+  };
+  
+  // Add connection status indicator 
+  const renderConnectionStatus = () => {
+    if (!isRemoteMode.value) return null;
+    
+    const statusColors = {
+      disconnected: 'bg-red-500',
+      connecting: 'bg-yellow-500',
+      connected: 'bg-green-500'
+    };
+    
+    const statusText = {
+      disconnected: 'Not Connected',
+      connecting: 'Connecting...',
+      connected: 'Connected'
+    };
+    
+    return (
+      <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md ml-2">
+        <div className={`w-2 h-2 rounded-full ${statusColors[connectionStatus.value]}`} />
+        <span className="text-xs">{statusText[connectionStatus.value]}</span>
       </div>
     );
   };
@@ -262,25 +331,44 @@ export function Quiz() {
       <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden">
         {renderBarcodeScanner()}
         
+        {/* Phone mode banner */}
+        {isRemoteMode.value && (
+          <div className="bg-blue-600 text-white py-1 text-center text-sm">
+            <p>Phone Mode: Scan QR codes with your phone camera to control the quiz</p>
+          </div>
+        )}
+        
         {/* Help modal */}
         {helpModalOpen.value && (
           <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setHelpModalOpen(false)}>
             <div className="bg-[#2b2b33] p-5 rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
               <h2 className="text-xl font-semibold mb-3">Barcode Quiz Help</h2>
-              <p className="mb-3">Scan the QR codes with your barcode scanner to navigate the quiz:</p>
+              <p className="mb-3">Scan the QR codes with your barcode scanner or phone to navigate the quiz:</p>
               <ul className="list-disc pl-5 mb-4 space-y-1">
                 <li>Each QR code represents an answer option</li>
                 <li>The corner position of each QR code matches its option letter</li>
                 <li>Scan the "Restart Quiz" QR code to start over</li>
-                <li>Scan the "Show/Hide Answers" QR code to toggle answer visibility</li>
+                <li>Use "Phone Mode" toggle to switch between barcode scanner and phone camera modes</li>
               </ul>
+              
+              {isRemoteMode.value && (
+                <div className="bg-blue-600/20 border border-blue-500 rounded-md p-3 mb-4">
+                  <h3 className="font-medium mb-1">Phone Mode</h3>
+                  <p className="text-sm mb-2">When in Phone Mode:</p>
+                  <ul className="text-sm list-disc pl-4">
+                    <li>QR codes contain URLs that work with phone cameras</li>
+                    <li>Scanning a QR code with your phone will control this screen</li>
+                    <li>Great for presenting the quiz on a big screen with audience participation</li>
+                  </ul>
+                </div>
+              )}
               
               {/* Close QR code */}
               <div className="flex flex-col items-center mb-4">
                 <span className="text-sm mb-2">Scan to close help</span>
                 <div className="bg-white p-2 rounded-lg max-w-[120px]">
                   <QRCode 
-                    value={QR_COMMANDS.CLOSE_HELP}
+                    value={getCommandQrCodeUrl(QR_COMMANDS.CLOSE_HELP)}
                     className="w-full aspect-square"
                   />
                 </div>
@@ -304,7 +392,7 @@ export function Quiz() {
               <div className="relative group cursor-pointer" onClick={() => setHelpModalOpen(true)}>
                 <div className="bg-white p-1 rounded-md w-10 h-10 hover:scale-105 transition-transform">
                   <QRCode 
-                    value={QR_INSTRUCTIONS}
+                    value={getCommandQrCodeUrl(QR_INSTRUCTIONS)}
                     className="w-full h-full"
                   />
                 </div>
@@ -312,6 +400,7 @@ export function Quiz() {
                   Scan or click for help
                 </span>
               </div>
+              {renderConnectionStatus()}
             </div>
             
             <h1 className="text-xl font-bold">Quiz Results</h1>
@@ -335,6 +424,28 @@ export function Quiz() {
                     <path d={scannerEnabled.value 
                       ? "M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM20.25 5.507v11.561L5.853 2.671c.15-.043.306-.075.467-.094a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93zM3.75 21V6.932l14.063 14.063L12 18.088l-7.165 3.583A.75.75 0 013.75 21z" 
                       : "M21.75 17.25v-1.5a.75.75 0 00-.75-.75h-3v-3a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3h-3a.75.75 0 00-.75.75v1.5c0 .414.336.75.75.75h3v3c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75v-3h3a.75.75 0 00.75-.75zM8.25 2.104a.75.75 0 00-.375.656V9.75a.75.75 0 00.75.75h6.375a.75.75 0 01.583 1.223L8.75 19.067a.75.75 0 01-1.251-.337v-6.98a.75.75 0 00-.75-.75H1.057a.75.75 0 01-.656-1.125L7.51 2.104a.75.75 0 01.74 0z"}
+                    />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Phone mode toggle */}
+              <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+                  <div className={`w-2 h-2 rounded-full ${isRemoteMode.value ? 'bg-blue-500' : 'bg-gray-500'}`} />
+                  <span className="text-xs">
+                    {isRemoteMode.value ? 'Phone Mode' : 'Scanner Mode'}
+                  </span>
+                </div>
+                <button 
+                  onClick={toggleRemoteMode}
+                  className={`w-7 h-7 rounded-md flex items-center justify-center ${isRemoteMode.value ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'} transition-colors`}
+                  title={isRemoteMode.value ? "Use Barcode Scanner" : "Use Phone Camera"}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                    <path d={isRemoteMode.value 
+                      ? "M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06z" 
+                      : "M10.5 18.75a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zM15.375 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0z M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a6.845 6.845 0 008.5-1.88.75.75 0 111.19.912 8.348 8.348 0 01-10.364 2.29.75.75 0 11.674-1.322z"}
                     />
                   </svg>
                 </button>
@@ -373,7 +484,7 @@ export function Quiz() {
                   >
                     <QRCode 
                       size={280}
-                      value={QR_COMMANDS.RESET} 
+                      value={getCommandQrCodeUrl(QR_COMMANDS.RESET)} 
                       className="w-full aspect-square"
                     />
                   </div>
@@ -437,12 +548,19 @@ export function Quiz() {
     <div className="flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] relative overflow-hidden">
       {renderBarcodeScanner()}
       
+      {/* Phone mode banner */}
+      {isRemoteMode.value && (
+        <div className="bg-blue-600 text-white py-1 text-center text-sm">
+          <p>Phone Mode: Scan QR codes with your phone camera to control the quiz</p>
+        </div>
+      )}
+      
       {/* Help modal */}
       {helpModalOpen.value && (
         <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={() => setHelpModalOpen(false)}>
           <div className="bg-[#2b2b33] p-5 rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
             <h2 className="text-xl font-semibold mb-3">Barcode Quiz Help</h2>
-            <p className="mb-3">Scan the QR codes with your barcode scanner to navigate the quiz:</p>
+            <p className="mb-3">Scan the QR codes with your barcode scanner or phone to navigate the quiz:</p>
             <ul className="list-disc pl-5 mb-4 space-y-1">
               <li>Each QR code represents an answer option</li>
               <li>The corner position of each QR code matches its option letter</li>
@@ -450,12 +568,24 @@ export function Quiz() {
               <li>Correct answers turn green, incorrect turn red</li>
             </ul>
             
+            {isRemoteMode.value && (
+              <div className="bg-blue-600/20 border border-blue-500 rounded-md p-3 mb-4">
+                <h3 className="font-medium mb-1">Phone Mode</h3>
+                <p className="text-sm mb-2">When in Phone Mode:</p>
+                <ul className="text-sm list-disc pl-4">
+                  <li>QR codes contain URLs that work with phone cameras</li>
+                  <li>Scanning a QR code with your phone will control this screen</li>
+                  <li>Great for presenting the quiz on a big screen with audience participation</li>
+                </ul>
+              </div>
+            )}
+            
             {/* Close QR code */}
             <div className="flex flex-col items-center mb-4">
               <span className="text-sm mb-2">Scan to close help</span>
               <div className="bg-white p-2 rounded-lg max-w-[120px]">
                 <QRCode 
-                  value={QR_COMMANDS.CLOSE_HELP}
+                  value={getCommandQrCodeUrl(QR_COMMANDS.CLOSE_HELP)}
                   className="w-full aspect-square"
                 />
               </div>
@@ -479,7 +609,7 @@ export function Quiz() {
             <div className="relative group cursor-pointer" onClick={() => setHelpModalOpen(true)}>
               <div className="bg-white p-1 rounded-md w-10 h-10 hover:scale-105 transition-transform">
                 <QRCode 
-                  value={QR_INSTRUCTIONS}
+                  value={getCommandQrCodeUrl(QR_INSTRUCTIONS)}
                   className="w-full h-full"
                 />
               </div>
@@ -487,6 +617,7 @@ export function Quiz() {
                 Scan or click for help
               </span>
             </div>
+            {renderConnectionStatus()}
           </div>
           
           {/* Center progress indicator as badge */}
@@ -529,6 +660,28 @@ export function Quiz() {
                   <path d={scannerEnabled.value 
                     ? "M3.53 2.47a.75.75 0 00-1.06 1.06l18 18a.75.75 0 101.06-1.06l-18-18zM20.25 5.507v11.561L5.853 2.671c.15-.043.306-.075.467-.094a49.255 49.255 0 0111.36 0c1.497.174 2.57 1.46 2.57 2.93zM3.75 21V6.932l14.063 14.063L12 18.088l-7.165 3.583A.75.75 0 013.75 21z" 
                     : "M21.75 17.25v-1.5a.75.75 0 00-.75-.75h-3v-3a.75.75 0 00-.75-.75h-1.5a.75.75 0 00-.75.75v3h-3a.75.75 0 00-.75.75v1.5c0 .414.336.75.75.75h3v3c0 .414.336.75.75.75h1.5a.75.75 0 00.75-.75v-3h3a.75.75 0 00.75-.75zM8.25 2.104a.75.75 0 00-.375.656V9.75a.75.75 0 00.75.75h6.375a.75.75 0 01.583 1.223L8.75 19.067a.75.75 0 01-1.251-.337v-6.98a.75.75 0 00-.75-.75H1.057a.75.75 0 01-.656-1.125L7.51 2.104a.75.75 0 01.74 0z"}
+                  />
+                </svg>
+              </button>
+            </div>
+            
+            {/* Phone mode toggle */}
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 bg-[#3d3d47] px-2 py-1 rounded-md">
+                <div className={`w-2 h-2 rounded-full ${isRemoteMode.value ? 'bg-blue-500' : 'bg-gray-500'}`} />
+                <span className="text-xs">
+                  {isRemoteMode.value ? 'Phone Mode' : 'Scanner Mode'}
+                </span>
+              </div>
+              <button 
+                onClick={toggleRemoteMode}
+                className={`w-7 h-7 rounded-md flex items-center justify-center ${isRemoteMode.value ? 'bg-blue-600 hover:bg-blue-700' : 'bg-gray-600 hover:bg-gray-700'} transition-colors`}
+                title={isRemoteMode.value ? "Use Barcode Scanner" : "Use Phone Camera"}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4">
+                  <path d={isRemoteMode.value 
+                    ? "M4.5 4.5a3 3 0 00-3 3v9a3 3 0 003 3h8.25a3 3 0 003-3v-9a3 3 0 00-3-3H4.5zM19.94 18.75l-2.69-2.69V7.94l2.69-2.69c.944-.945 2.56-.276 2.56 1.06v11.38c0 1.336-1.616 2.005-2.56 1.06z" 
+                    : "M10.5 18.75a.75.75 0 000 1.5h3a.75.75 0 000-1.5h-3z M8.625 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0zM15.375 9.75a.375.375 0 11-.75 0 .375.375 0 01.75 0z M12 2.25c-5.385 0-9.75 4.365-9.75 9.75s4.365 9.75 9.75 9.75 9.75-4.365 9.75-9.75S17.385 2.25 12 2.25zm-4.28 9.22a6.845 6.845 0 008.5-1.88.75.75 0 111.19.912 8.348 8.348 0 01-10.364 2.29.75.75 0 11.674-1.322z"}
                   />
                 </svg>
               </button>

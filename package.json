@@ -4,15 +4,19 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy": "bun run build && partykit deploy"
   },
   "dependencies": {
     "@preact/signals-react": "^3.0.1",
+    "partysocket": "1.0.3",
+    "qr-scanner": "^1.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.2.0",
-    "uqr": "^0.1.2",
-    "partysocket": "1.0.3"
+    "uqr": "^0.1.2"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.0.11",

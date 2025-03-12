@@ -1,6 +1,5 @@
 import { memo, useMemo, useEffect } from "react";
 import { Quiz } from "@/components/Quiz";
-import { QuizSettings } from "@/components/QuizSettings";
 import { isRemoteMode, initPartyConnection } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
 // import { DevTools } from "@/components/DevTools";
@@ -60,10 +59,6 @@ export default function App() {
 				<Quiz />
 			</main>
 			
-			{/* Settings panel */}
-			<QuizSettings />
-			
-			{/* Add DevTools - hidden by default, press Alt+D to show */}
 			{/* <DevTools /> */}
 		</div>
 	);

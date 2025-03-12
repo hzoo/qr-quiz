@@ -1,15 +1,50 @@
 import { signal } from "@preact/signals-react";
-import { answerQuestion } from "./quiz";
 import type { PartySocket } from "partysocket";
 
 // Signal to track if we're using remote mode (QR codes via phone camera)
 export const isRemoteMode = signal(false);
+
+// Initialize remote mode from localStorage if available
+if (typeof window !== 'undefined') {
+  const savedRemoteMode = localStorage.getItem('remoteMode');
+  if (savedRemoteMode !== null) {
+    isRemoteMode.value = savedRemoteMode === 'true';
+  }
+}
 
 // Signal to track connection status
 export const connectionStatus = signal<"disconnected" | "connecting" | "connected">("disconnected");
 
 // Store the PartySocket instance
 let socket: PartySocket | null = null;
+
+// Type definition for message handlers
+export type MessageData = {
+  type: string;
+  option?: string;
+  timestamp?: number;
+  connectionId?: string;
+  message?: string;
+  success?: boolean;
+};
+
+type MessageCallback = (data: MessageData) => void;
+
+// Store message handlers
+const messageHandlers: MessageCallback[] = [];
+
+// Add a message handler
+export function addMessageHandler(callback: MessageCallback) {
+  messageHandlers.push(callback);
+}
+
+// Remove a message handler
+export function removeMessageHandler(callback: MessageCallback) {
+  const index = messageHandlers.indexOf(callback);
+  if (index !== -1) {
+    messageHandlers.splice(index, 1);
+  }
+}
 
 // Initialize the PartyKit connection
 export function initPartyConnection(roomId = "quiz") {
@@ -43,12 +78,21 @@ export function initPartyConnection(roomId = "quiz") {
       try {
         const data = JSON.parse(event.data);
         
-        // Handle different message types
-        if (data.type === "selection") {
-          console.log("Received selection:", data.option);
-          // Process the option selection (this should match your option IDs)
-          answerQuestion(data.option);
+        if (messageHandlers.length === 0) {
+          console.warn("PartyKit message received but no handlers registered:", data);
+          return;
         }
+        
+        // Notify all registered handlers
+        messageHandlers.forEach(handler => {
+          try {
+            handler(data);
+          } catch (error) {
+            console.error("Error in message handler:", error);
+          }
+        });
+        
+        // No default handler needed - handlers should be registered by consumers
       } catch (error) {
         console.error("Error parsing message:", error);
       }
@@ -87,4 +131,10 @@ export function getQrCodeUrl(optionId: string): string {
   
   // Format: https://host/parties/main/roomId/optionId
   return `${protocol}://${host}/parties/main/quiz/${optionId}`;
+}
+
+// Create a QR for command codes - conditionally use URL if in remote mode
+export function getCommandQrCodeUrl(command: string): string {
+  // Only use URL format if in remote mode, otherwise use simple command
+  return isRemoteMode.value ? getQrCodeUrl(command) : command;
 } 
