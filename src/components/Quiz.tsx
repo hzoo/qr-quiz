@@ -548,6 +548,23 @@ export function Quiz() {
               <li>Correct answers turn green, incorrect turn red</li>
             </ul>
             
+            {/* Mobile scanner information */}
+            <div className="mb-4 p-3 bg-[#23232b] rounded-lg">
+              <h3 className="font-medium mb-2">Using a Phone as Scanner</h3>
+              <div className="flex items-center gap-3">
+                <div className="bg-white p-2 rounded-lg">
+                  <QRCode 
+                    value="https://barcode-fun-party.hzoo.partykit.dev/qr.html"
+                    className="w-[80px] h-[80px]"
+                  />
+                </div>
+                <div className="text-sm">
+                  <p>Scan this QR code to open a dedicated scanner app on your phone.</p>
+                  <p className="text-[#e9a178] mt-1">This is faster than using your phone's camera!</p>
+                </div>
+              </div>
+            </div>
+            
             {/* Close QR code */}
             <div className="flex flex-col items-center mb-4">
               <span className="text-sm mb-2">Scan to close help</span>
