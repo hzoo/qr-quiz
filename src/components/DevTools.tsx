@@ -1,8 +1,11 @@
+import { useSignals } from "@preact/signals-react/runtime";
 import { useEffect, useState } from "react";
 
 // This is a development-only component to help test the app
 // without needing a physical barcode scanner
 export function DevTools() {
+  useSignals();
+  
   const [showControls, setShowControls] = useState(false);
   const [testMode, setTestMode] = useState(false);
   const [scanDelay, setScanDelay] = useState(5); // seconds

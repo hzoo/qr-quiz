@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState, useCallback, memo } from "react";
-
+import { useSignals } from "@preact/signals-react/runtime";
 type BarcodeScannerProps = {
   onScan: (value: string) => void;
   onStatusChange?: (isReady: boolean) => void; // Optional callback for scan status
 };
 
 function BarcodeScannerImpl({ onScan, onStatusChange }: BarcodeScannerProps) {
+  useSignals();
+
   const inputRef = useRef<HTMLInputElement>(null);
   const timeoutRef = useRef<number | null>(null);
   const [isFocused, setIsFocused] = useState(true);

@@ -56,6 +56,11 @@ export const nextQuestionsQueue = signal<Question[]>([]);
 const questionPoolKey = 'questionPool';
 const minPoolSize = 20; // Minimum questions to maintain in the pool
 
+// Settings
+export const questionsPerQuiz = signal<number>(
+  Number.parseInt(localStorage.getItem("questionsPerQuiz") || "10")
+);
+
 const loadQuestionPool = (): Question[] => {
   try {
     const saved = localStorage.getItem(questionPoolKey);

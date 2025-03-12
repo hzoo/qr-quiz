@@ -1,5 +1,8 @@
-import { memo, useMemo } from "react";
+import { memo, useMemo, useEffect } from "react";
 import { Quiz } from "@/components/Quiz";
+import { QuizSettings } from "@/components/QuizSettings";
+import { isRemoteMode, initPartyConnection } from "@/store/partyConnection";
+import { useSignals } from "@preact/signals-react/runtime";
 // import { DevTools } from "@/components/DevTools";
 
 // Fix the linter error by providing a better key
@@ -28,6 +31,18 @@ const BarcodeStripes = memo(() => {
 BarcodeStripes.displayName = "BarcodeStripes";
 
 export default function App() {
+	useSignals(); // Enable signals in this component
+
+	// Initialize PartyKit connection if remote mode is enabled
+	useEffect(() => {
+		// Check if remote mode was previously enabled (stored in localStorage)
+		const savedRemoteMode = localStorage.getItem("remoteMode");
+		if (savedRemoteMode === "true") {
+			isRemoteMode.value = true;
+			initPartyConnection();
+		}
+	}, []);
+
 	return (
 		<div className="h-screen flex flex-col overflow-hidden bg-[#2b2b33] paper-texture">
 			{/* More compact header with less vertical space */}
@@ -44,6 +59,9 @@ export default function App() {
 			<main>
 				<Quiz />
 			</main>
+			
+			{/* Settings panel */}
+			<QuizSettings />
 			
 			{/* Add DevTools - hidden by default, press Alt+D to show */}
 			{/* <DevTools /> */}

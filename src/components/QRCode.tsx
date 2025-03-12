@@ -1,5 +1,6 @@
 import { renderSVG } from 'uqr';
 import { useEffect, useRef, useState, memo } from 'react';
+import { useSignals } from '@preact/signals-react/runtime';
 
 type QRCodeProps = {
   value: string;
@@ -9,6 +10,8 @@ type QRCodeProps = {
 };
 
 function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeProps) {
+  useSignals();
+  
   const qrRef = useRef<HTMLDivElement>(null);
   const [error, setError] = useState<string | null>(null);
 

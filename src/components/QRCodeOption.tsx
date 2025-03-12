@@ -1,6 +1,8 @@
 import { memo } from "react";
 import type { Option } from "@/types";
 import { QRCode } from "./QRCode";
+import { isRemoteMode, getQrCodeUrl } from "@/store/partyConnection";
+import { useSignals } from "@preact/signals-react/runtime";
 
 type QRCodeOptionProps = {
   option: Option;
@@ -16,6 +18,8 @@ function QRCodeOptionImpl({
   isSelected = false, 
   isCorrect = null 
 }: QRCodeOptionProps) {
+  useSignals();
+  
   // Extract just the last part (letter) from the ID for the QR code
   // If format is q0_A, this will extract just "A"
   const simpleScanCode = option.id.split('_').pop() || option.id;
@@ -48,6 +52,11 @@ function QRCodeOptionImpl({
       shadow = "shadow-blue-900/20";
     }
   }
+
+  // Determine QR code value based on mode
+  const qrValue = isRemoteMode.value 
+    ? getQrCodeUrl(option.id) 
+    : simpleScanCode;
   
   return (
     <div
@@ -73,7 +82,7 @@ function QRCodeOptionImpl({
         
         {/* Larger QR code */}
         <div className="bg-white p-3 sm:p-4 rounded-lg w-full max-w-[90%] aspect-square border-4 border-white shadow-lg">
-          <QRCode value={simpleScanCode} className="w-full h-full" />
+          <QRCode value={qrValue} className="w-full h-full" />
         </div>
         
         {/* Badge - larger and more prominent */}
@@ -83,7 +92,7 @@ function QRCodeOptionImpl({
         
         {/* Scan text - more visible */}
         <div className="absolute bottom-1 left-0 right-0 text-center text-sm text-[#ebebf0]/80 font-medium">
-          scan or tap
+          {isRemoteMode.value ? "scan with phone" : "scan or tap"}
         </div>
       </div>
     </div>
