@@ -12,3 +12,13 @@ const count = signal(0);
 // think about splitting components to save re-renders
 <button onClick={() => count.value++}>{count.value}</button>;
 ```
+
+- there's no need to pass down a value as props in react components if it's a signal because the component itself can import that signal directly inside the component.
+
+```diff 
+import { scannerEnabled } from "./signals";
+- <BarcodeScannerView enabled={scannerEnabled.value} />
+- function BarcodeScannerView({ enabled }: { enabled: boolean}) {}
++ <BarcodeScannerView />
++ function BarcodeScannerView() {}
+```

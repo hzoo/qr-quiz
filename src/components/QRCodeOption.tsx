@@ -8,6 +8,8 @@ type QRCodeOptionProps = {
   onScan: (id: string) => void;
   isSelected?: boolean;
   isCorrect?: boolean | null;
+  hideQrCode?: boolean;
+  qrSize?: number;
 };
 
 // Component implementation
@@ -15,7 +17,9 @@ function QRCodeOptionImpl({
   option, 
   onScan, 
   isSelected = false, 
-  isCorrect = null 
+  isCorrect = null,
+  hideQrCode = false,
+  qrSize = 200 // Default size if not specified
 }: QRCodeOptionProps) {
   useSignals();
   
@@ -31,66 +35,100 @@ function QRCodeOptionImpl({
     onScan(option.id);
   };
   
+  // Always use the simple option letter for QR code value - simplifies scanning
+  const qrValue = optionLetter;
+
+  // For standalone usage (not in the QuizQuestionView)
+  if (!hideQrCode) {
+    // Determine styling based on selection state
+    let borderColor = "border-white";
+    let badgeColor = "bg-[#e9a178]";
+    let statusIcon = null;
+    
+    if (isSelected) {
+      if (isCorrect === true) {
+        // Correct answer styling - more visible
+        borderColor = "border-emerald-400";
+        badgeColor = "bg-emerald-500";
+        statusIcon = (
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-md z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5">
+              <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
+            </svg>
+          </div>
+        );
+      } else if (isCorrect === false) {
+        // Incorrect answer styling - more visible
+        borderColor = "border-red-400";
+        badgeColor = "bg-red-500";
+        statusIcon = (
+          <div className="absolute -top-2 -right-2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-md z-10">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5">
+              <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
+            </svg>
+          </div>
+        );
+      }
+    }
+    
+    return (
+      <div
+        className="p-3 rounded-lg cursor-pointer hover:scale-105 transition-transform relative"
+        onClick={handleClick}
+      >
+        {/* QR code with option letter */}
+        <div className="flex flex-col items-center">
+          {statusIcon}
+          <div className={`bg-white p-2 rounded-lg shadow-md border-4 ${borderColor} transition-colors`}>
+            <QRCode
+              value={qrValue}
+              size={qrSize}
+              className="w-full h-full"
+            />
+          </div>
+          <div className={`mt-2 ${badgeColor} text-[#1e1e24] font-bold px-3 py-1 rounded-full text-center transition-colors`}>
+            {optionLetter}
+          </div>
+        </div>
+      </div>
+    );
+  }
+  
+  // When QR codes are hidden, just show the text content
   // Determine background color based on state
   let bgColor = "bg-gradient-to-br from-[#3d3d47] to-[#2b2b33]";
   let border = "border-2 border-[#3d3d47]";
   let shadow = "shadow-md";
   
   if (isSelected) {
+    border = "border-4"; // Thicker border for selected items
+    
     if (isCorrect === true) {
       bgColor = "bg-gradient-to-br from-emerald-600 to-emerald-700";
-      border = "border-2 border-emerald-500";
+      border = "border-4 border-emerald-400"; // Brighter color for visibility
       shadow = "shadow-emerald-900/20";
     } else if (isCorrect === false) {
       bgColor = "bg-gradient-to-br from-red-600 to-red-700";
-      border = "border-2 border-red-500";
+      border = "border-4 border-red-400"; // Brighter color for visibility
       shadow = "shadow-red-900/20";
     } else {
       bgColor = "bg-gradient-to-br from-blue-600 to-blue-700";
-      border = "border-2 border-blue-500";
+      border = "border-4 border-blue-500";
       shadow = "shadow-blue-900/20";
     }
   }
-
-  // Always use the simple option letter for QR code value - simplifies scanning
-  const qrValue = optionLetter;
   
   return (
     <div
-      className={`p-4 sm:p-6 md:p-8 rounded-xl ${bgColor} ${border} ${shadow} transition-all duration-300 hover:shadow-lg hover:-translate-y-1 cursor-pointer paper-texture h-full flex flex-col`}
+      className={`p-4 rounded-xl ${bgColor} ${border} ${shadow} transition-all cursor-pointer hover:shadow-lg flex items-center justify-between h-full`}
       onClick={handleClick}
     >
-      {/* Option text with fixed height */}
-      <div className="text-base sm:text-lg md:text-xl lg:text-2xl font-medium text-[#ebebf0] mb-4 text-center flex items-center justify-center">
-        <span className="line-clamp-3">{option.text}</span>
-      </div>
-      
-      {/* QR Code Container - larger and more prominent */}
-      <div className="relative flex-1 flex items-center justify-center pt-2 pb-10">
-        {/* Visual corner indicator based on option position */}
-        <div className="absolute inset-0 pointer-events-none">
-          <div className={`absolute w-14 h-14 border-4 rounded-md border-[#e9a178] opacity-70 ${
-            optionLetter === 'A' ? 'top-0 left-0 border-r-0 border-b-0' : 
-            optionLetter === 'B' ? 'top-0 right-0 border-l-0 border-b-0' : 
-            optionLetter === 'C' ? 'bottom-0 left-0 border-r-0 border-t-0' : 
-            'bottom-0 right-0 border-l-0 border-t-0'
-          }`} />
-        </div>
-        
-        {/* Larger QR code */}
-        <div className="bg-white p-3 sm:p-4 rounded-lg w-full max-w-[90%] aspect-square border-4 border-white shadow-lg">
-          <QRCode value={qrValue} className="w-full h-full" />
-        </div>
-        
-        {/* Badge - larger and more prominent */}
-        <div className="absolute -top-3 -right-3 w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-[#e9a178] text-[#2b2b33] flex items-center justify-center text-lg sm:text-xl font-bold shadow-md ring-2 ring-[#1e1e24]">
+      {/* Option text */}
+      <div className="flex items-center gap-3">
+        <div className="bg-[#e9a178] text-[#1e1e24] font-bold w-10 h-10 flex items-center justify-center rounded-full shrink-0">
           {optionLetter}
         </div>
-        
-        {/* Scan text - more visible */}
-        <div className="absolute bottom-1 left-0 right-0 text-center text-sm text-[#ebebf0]/80 font-medium">
-          scan or tap
-        </div>
+        <span className="text-xl font-medium text-[#ebebf0]">{option.text}</span>
       </div>
     </div>
   );
@@ -102,7 +140,9 @@ function areEqual(prevProps: QRCodeOptionProps, nextProps: QRCodeOptionProps) {
     prevProps.option.id === nextProps.option.id &&
     prevProps.option.text === nextProps.option.text &&
     prevProps.isSelected === nextProps.isSelected &&
-    prevProps.isCorrect === nextProps.isCorrect
+    prevProps.isCorrect === nextProps.isCorrect &&
+    prevProps.hideQrCode === nextProps.hideQrCode &&
+    prevProps.qrSize === nextProps.qrSize
   );
 }
 

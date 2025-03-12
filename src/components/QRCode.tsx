@@ -48,8 +48,15 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
     }
   }, [value]);
 
+  // Apply size as style to the container
+  const containerStyle = {
+    width: size ? `${size}px` : '100%',
+    height: size ? `${size}px` : '100%',
+    maxWidth: '100%'
+  };
+
   return (
-    <div className={`flex items-center justify-center ${className}`}>
+    <div className={`flex items-center justify-center ${className}`} style={containerStyle}>
       {error ? (
         <div className="p-3 bg-red-100 text-red-800 rounded-lg">
           {error}
@@ -65,7 +72,9 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
 function areEqual(prevProps: QRCodeProps, nextProps: QRCodeProps) {
   return (
     prevProps.value === nextProps.value &&
-    prevProps.size === nextProps.size
+    prevProps.size === nextProps.size &&
+    prevProps.className === nextProps.className &&
+    prevProps.label === nextProps.label
   );
 }
 

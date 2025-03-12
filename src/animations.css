@@ -1,0 +1,43 @@
+@import "tailwindcss";
+
+@theme {
+  --animate-pulse-gentle: pulse-gentle 2s ease-in-out infinite;
+  --animate-bounce-gentle: bounce-gentle 1s ease-in-out infinite;
+  --animate-shake-gentle: shake-gentle 0.5s ease-in-out;
+}
+
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes bounce-gentle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes shake-gentle {
+  0%, 100% {
+    transform: translateX(0);
+  }
+  20% {
+    transform: translateX(-4px);
+  }
+  40% {
+    transform: translateX(4px);
+  }
+  60% {
+    transform: translateX(-2px);
+  }
+  80% {
+    transform: translateX(2px);
+  }
+} 

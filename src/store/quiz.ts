@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals-react";
+import { signal, effect } from "@preact/signals-react";
 import type { Question, QuizState, Option } from "@/types";
 
 // Default questions to show immediately
@@ -51,6 +51,12 @@ const defaultQuestions: Question[] = [
 
 // Queue for the next set of questions
 export const nextQuestionsQueue = signal<Question[]>([]);
+
+// Tracking if generating new questions is in progress
+export const isGeneratingNewQuestions = signal(false);
+
+// Flag to indicate if we should queue new questions
+export const shouldQueueNewQuestions = signal(false);
 
 // Question pool management
 const questionPoolKey = 'questionPool';
@@ -106,6 +112,33 @@ const initialQuizState: QuizState = {
 // Create signals
 export const quizState = signal<QuizState>(initialQuizState);
 export const geminiModel = signal<string>("gemini-2.0-flash-lite");
+
+// Set up reactive effects
+// Effect for queuing new questions when at results screen
+effect(() => {
+  const { showResult, isLoading } = quizState.value;
+  
+  if (showResult && nextQuestionsQueue.value.length === 0 && !isLoading && 
+      !isGeneratingNewQuestions.value && shouldQueueNewQuestions.value) {
+    console.log('Queuing next questions in background');
+    isGeneratingNewQuestions.value = true;
+    generateQuestions().finally(() => {
+      isGeneratingNewQuestions.value = false;
+    });
+    shouldQueueNewQuestions.value = false;
+  }
+});
+
+// Effect to set flag to queue new questions when showing results
+effect(() => {
+  const { showResult, isLoading } = quizState.value;
+  
+  if (showResult && nextQuestionsQueue.value.length === 0 && !isLoading && 
+      !isGeneratingNewQuestions.value && !shouldQueueNewQuestions.value) {
+    console.log('Setting flag to queue new questions');
+    shouldQueueNewQuestions.value = true;
+  }
+});
 
 // Generate new questions and queue them
 export async function generateQuestions(count = 4, isPoolGeneration = false) {
@@ -506,7 +539,7 @@ export function answerQuestion(answerId: string) {
     userAnswers: newAnswers
   };
   
-  // Move to next question after a shorter delay (800ms instead of 1500ms)
+  // Move to next question after a delay, giving time to see feedback
   setTimeout(() => {
     const nextIndex = currentState.currentQuestionIndex + 1;
     if (nextIndex < currentState.questions.length) {
@@ -522,7 +555,7 @@ export function answerQuestion(answerId: string) {
         showResult: true,
       };
     }
-  }, 800); // Reduced from 1500ms to 800ms for better pacing
+  }, 2000); // Increased from 800ms to 2000ms to allow time to see the feedback
 }
 
 // Action to restart the quiz
