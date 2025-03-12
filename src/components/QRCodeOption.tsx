@@ -1,7 +1,6 @@
 import { memo } from "react";
 import type { Option } from "@/types";
 import { QRCode } from "./QRCode";
-import { isRemoteMode, getQrCodeUrl } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
 
 type QRCodeOptionProps = {
@@ -53,10 +52,8 @@ function QRCodeOptionImpl({
     }
   }
 
-  // Determine QR code value based on mode
-  const qrValue = isRemoteMode.value 
-    ? getQrCodeUrl(option.id) 
-    : simpleScanCode;
+  // Always use the simple option letter for QR code value - simplifies scanning
+  const qrValue = optionLetter;
   
   return (
     <div
@@ -92,7 +89,7 @@ function QRCodeOptionImpl({
         
         {/* Scan text - more visible */}
         <div className="absolute bottom-1 left-0 right-0 text-center text-sm text-[#ebebf0]/80 font-medium">
-          {isRemoteMode.value ? "scan with phone" : "scan or tap"}
+          scan or tap
         </div>
       </div>
     </div>

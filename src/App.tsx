@@ -1,6 +1,6 @@
 import { memo, useMemo, useEffect } from "react";
 import { Quiz } from "@/components/Quiz";
-import { isRemoteMode, initPartyConnection } from "@/store/partyConnection";
+import { initPartyConnection } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
 // import { DevTools } from "@/components/DevTools";
 
@@ -32,14 +32,10 @@ BarcodeStripes.displayName = "BarcodeStripes";
 export default function App() {
 	useSignals(); // Enable signals in this component
 
-	// Initialize PartyKit connection if remote mode is enabled
+	// Initialize PartyKit connection
 	useEffect(() => {
-		// Check if remote mode was previously enabled (stored in localStorage)
-		const savedRemoteMode = localStorage.getItem("remoteMode");
-		if (savedRemoteMode === "true") {
-			isRemoteMode.value = true;
-			initPartyConnection();
-		}
+		// Always initialize PartyKit to handle connections
+		initPartyConnection();
 	}, []);
 
 	return (

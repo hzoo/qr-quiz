@@ -80,7 +80,8 @@ function BarcodeScannerImpl({ onScan, onStatusChange }: BarcodeScannerProps) {
     if (e.key === "Enter") {
       const value = inputRef.current?.value || "";
       if (value.trim()) {
-        onScan(value.trim());
+        // Normalize to uppercase for consistency with other scanners
+        onScan(value.trim().toUpperCase());
         if (inputRef.current) {
           inputRef.current.value = "";
         }
@@ -92,7 +93,8 @@ function BarcodeScannerImpl({ onScan, onStatusChange }: BarcodeScannerProps) {
     timeoutRef.current = window.setTimeout(() => {
       const value = inputRef.current?.value || "";
       if (value.trim()) {
-        onScan(value.trim());
+        // Normalize to uppercase for consistency with other scanners
+        onScan(value.trim().toUpperCase());
         if (inputRef.current) {
           inputRef.current.value = "";
         }

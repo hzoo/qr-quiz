@@ -1,6 +1,8 @@
 // Import the QR scanner library
 // Note: We'll use npm package instead of unpkg in production
 import QrScanner from 'qr-scanner';
+import { signal } from "@preact/signals";
+import { getQrCodeUrl } from "./store/partyConnection";
 
 // DOM Elements
 const video = document.getElementById('qr-video') as HTMLVideoElement;
@@ -11,7 +13,9 @@ const sunIcon = document.getElementById('sun-icon') as HTMLElement;
 const moonIcon = document.getElementById('moon-icon') as HTMLElement;
 const body = document.body;
 
-let qrData = '';
+// Global state using signals
+const qrData = signal('');
+const constructedUrl = signal('');
 
 // Theme handling
 const THEME_KEY = 'qr-scanner-theme';
@@ -96,19 +100,50 @@ function updateResult(text: string, isError = false) {
   stateClasses[state].forEach(cls => resultDiv.classList.add(cls));
 }
 
+// Function to convert code to URL
+function convertCodeToUrl(code: string): string {
+  // If the scanned data is already a URL, return it directly
+  if (code.startsWith('http')) {
+    return code;
+  }
+  
+  // Handle command codes and option codes differently
+  let cleanCode = code.trim();
+  
+  // Check if it's a command code (starts with c:)
+  const isCommandCode = cleanCode.toLowerCase().startsWith('c:');
+  
+  // For option codes, convert to uppercase for consistency
+  // For command codes, preserve the case
+  if (!isCommandCode) {
+    cleanCode = cleanCode.toUpperCase();
+  }
+  
+  // Use the existing getQrCodeUrl function to construct the URL
+  // This will handle the proper formatting for PartyKit
+  return getQrCodeUrl(cleanCode);
+}
+
 // Initialize QR scanner
 const scanner = new QrScanner(
   video,
   (res: QrScanner.ScanResult) => {
     if (res.data) {
-      qrData = res.data;
-      const isUrl = res.data.startsWith('http');
-      updateResult(`Scanned: ${isUrl ? 'URL' : res.data}`);
-      showScanFeedback(true);
+      // Store the raw scanned data
+      qrData.value = res.data;
       
-      // Enable submit button if it's a URL
-      if (isUrl) {
+      // Convert to URL if needed
+      const url = convertCodeToUrl(res.data);
+      constructedUrl.value = url;
+      
+      if (url) {
+        updateResult(`Scanned: ${res.data}`);
+        showScanFeedback(true);
         enableSubmitButton();
+      } else {
+        updateResult(`Invalid code: ${res.data}`, true);
+        showScanFeedback(false);
+        disableSubmitButton();
       }
     }
   },
@@ -144,25 +179,27 @@ scanner.start().catch(err => {
 
 // Add click event listener to submit button
 submitBtn.addEventListener('click', () => {
-  if (qrData) {
+  if (constructedUrl.value) {
     submitBtn.textContent = 'Loading...';
     disableSubmitButton();
     
-    fetch(qrData)
+    fetch(constructedUrl.value)
       .then(response => response.text())
       .then(data => {
-        updateResult(`Submitted: ${data.substring(0, 50)}${data.length > 50 ? '...' : ''}`);
+        updateResult(`Option "${qrData.value}" selected!`);
         console.log('Fetch response:', data);
       })
       .catch(err => {
-        updateResult(`Fetch error: ${err}`, true);
+        updateResult(`Error: ${err}`, true);
         console.error('Fetch error:', err);
       })
       .finally(() => {
         submitBtn.textContent = 'Submit';
-        enableSubmitButton();
+        qrData.value = '';
+        constructedUrl.value = '';
+        disableSubmitButton();
       });
   } else {
-    updateResult('No QR code scanned yet', true);
+    updateResult('No valid QR code scanned yet', true);
   }
 }); 

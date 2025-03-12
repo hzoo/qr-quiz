@@ -1,17 +1,6 @@
 import { signal } from "@preact/signals-react";
 import type { PartySocket } from "partysocket";
 
-// Signal to track if we're using remote mode (QR codes via phone camera)
-export const isRemoteMode = signal(false);
-
-// Initialize remote mode from localStorage if available
-if (typeof window !== 'undefined') {
-  const savedRemoteMode = localStorage.getItem('remoteMode');
-  if (savedRemoteMode !== null) {
-    isRemoteMode.value = savedRemoteMode === 'true';
-  }
-}
-
 // Signal to track connection status
 export const connectionStatus = signal<"disconnected" | "connecting" | "connected">("disconnected");
 
@@ -91,8 +80,6 @@ export function initPartyConnection(roomId = "quiz") {
             console.error("Error in message handler:", error);
           }
         });
-        
-        // No default handler needed - handlers should be registered by consumers
       } catch (error) {
         console.error("Error parsing message:", error);
       }
@@ -109,32 +96,12 @@ export function disconnectParty() {
   }
 }
 
-// Toggle remote mode
-export function toggleRemoteMode() {
-  console.log("Toggling remote mode", !isRemoteMode.value);
-  isRemoteMode.value = !isRemoteMode.value;
-  
-  // Save preference to localStorage
-  localStorage.setItem("remoteMode", isRemoteMode.value.toString());
-  
-  if (isRemoteMode.value) {
-    initPartyConnection();
-  } else {
-    disconnectParty();
-  }
-}
-
-// Get the full URL for a QR code option
+// Get the URL for a QR code option
+// This converts a simple code to the appropriate PartyKit URL
 export function getQrCodeUrl(optionId: string): string {
   const host = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
   const protocol = host.includes("localhost") ? "http" : "https";
   
   // Format: https://host/parties/main/roomId/optionId
   return `${protocol}://${host}/parties/main/quiz/${optionId}`;
-}
-
-// Create a QR for command codes - conditionally use URL if in remote mode
-export function getCommandQrCodeUrl(command: string): string {
-  // Only use URL format if in remote mode, otherwise use simple command
-  return isRemoteMode.value ? getQrCodeUrl(command) : command;
 } 
