@@ -66,8 +66,16 @@ export function Quiz() {
   // Register command handler
   useEffect(() => {
     const handlePartyMessage = (data: MessageData) => {
-      if ((data.type === 'scan' || data.type === 'selection') && data.option) {
-        handleScan(data.option);
+      if (data.type === "command") {
+        // Handle commands
+        const command = data.value;
+        if (command?.toLowerCase() === "c:r") {
+          restartQuiz();
+        }
+        // Add other command handlers as needed
+      } else if (data.type === "selection" && data.value) {
+        // Handle regular quiz answers
+        handleScan(data.value);
       }
     };
     

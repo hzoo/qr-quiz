@@ -1,8 +1,6 @@
 import { QRCode } from "@/components/QRCode";
 import { helpModalOpen, QR_COMMANDS } from "@/store/uiSignals";
-import { getQrCodeUrl } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useComputed } from "@preact/signals-react";
 
 export function HelpModal() {
   useSignals();
@@ -37,7 +35,6 @@ export function HelpModal() {
             </div>
             <div className="text-sm">
               <p>Scan this QR code to open a dedicated scanner app on your phone.</p>
-              <p className="text-[#e9a178] mt-1">This is faster than using your phone's camera!</p>
             </div>
           </div>
         </div>

@@ -3,6 +3,7 @@
 import QrScanner from 'qr-scanner';
 import { signal } from "@preact/signals";
 import { getQrCodeUrl } from "./store/partyConnection";
+import { QR_COMMANDS } from "./store/uiSignals";
 
 // DOM Elements
 const video = document.getElementById('qr-video') as HTMLVideoElement;
@@ -124,6 +125,29 @@ function convertCodeToUrl(code: string): string {
   return getQrCodeUrl(cleanCode);
 }
 
+// Function to get user-friendly message for QR codes
+function getFriendlyMessage(code: string): string {
+  // Convert to lowercase for case-insensitive comparison
+  const lowerCode = code.trim().toLowerCase();
+  
+  // Check if it's a command
+  if (lowerCode.startsWith(QR_COMMANDS.PREFIX.toLowerCase())) {
+    switch (lowerCode) {
+      case QR_COMMANDS.RESET.toLowerCase():
+        return "Restarting quiz...";
+      case QR_COMMANDS.CLOSE_HELP.toLowerCase():
+        return "Closing help menu...";
+      case QR_COMMANDS.INSTRUCTIONS.toLowerCase():
+        return "Opening help menu...";
+      default:
+        return `Unknown command: ${code}`;
+    }
+  }
+  
+  // For non-command codes (quiz answers), just show the option letter
+  return `Selected option ${code.toUpperCase()}`;
+}
+
 // Initialize QR scanner
 const scanner = new QrScanner(
   video,
@@ -137,7 +161,7 @@ const scanner = new QrScanner(
       constructedUrl.value = url;
       
       if (url) {
-        updateResult(`Scanned: ${res.data}`);
+        updateResult(getFriendlyMessage(res.data));
         showScanFeedback(true);
         enableSubmitButton();
       } else {

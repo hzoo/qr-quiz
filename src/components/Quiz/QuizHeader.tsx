@@ -83,10 +83,10 @@ export function QuizHeader({
           
           {/* Scanner status indicator with toggle */}
           <div className="flex items-center">
-            <div className={`flex items-center gap-1 px-3 py-1 rounded-full border ${scannerEnabled.value ? 'bg-[#23232b] border-green-500/50' : 'bg-[#23232b] border-red-500/50'}`}>
+            <div className={`flex items-center gap-1 px-3 py-1 rounded-full border border-2 ${scannerReady.value ? 'bg-[#23232b] border-green-500/50' : 'bg-[#23232b] border-yellow-500/50'}`}>
               <div className={`w-2 h-2 rounded-full ${scannerEnabled.value ? (scannerReady.value ? 'bg-green-500' : 'bg-yellow-500') : 'bg-red-500'}`} />
               <span className="text-xs font-medium">
-                {scannerEnabled.value ? (scannerReady.value ? 'Scanner Ready' : 'Click for Scanner') : 'Scanner Off'}
+                {scannerEnabled.value ? (scannerReady.value ? 'Scanner Ready' : 'Click to Scan') : 'Scanner Off'}
               </span>
               <button 
                 onClick={toggleScanner}

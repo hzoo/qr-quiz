@@ -9,8 +9,8 @@ let socket: PartySocket | null = null;
 
 // Type definition for message handlers
 export type MessageData = {
-  type: string;
-  option?: string;
+  type: "command" | "selection";
+  value?: string;
   timestamp?: number;
   connectionId?: string;
   message?: string;

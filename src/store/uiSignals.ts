@@ -4,9 +4,6 @@ import { signal } from "@preact/signals-react";
 export const QR_COMMANDS = {
   PREFIX: "c:",
   RESET: "c:r",
-  SHOW_ANSWERS: "c:s",
-  HIDE_ANSWERS: "c:h",
-  ANSWERS: "c:a",
   CLOSE_HELP: "c:c",
   INSTRUCTIONS: "c:i"
 };

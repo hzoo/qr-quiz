@@ -35,10 +35,10 @@ export default class Server implements Party.Server {
       
       console.log(`Processing ${isCommand ? 'command' : 'option'}: ${option}`);
 
-      // Broadcast the option/command to all connected clients
+      // Broadcast the option/command to all connected clients with proper type
       this.room.broadcast(JSON.stringify({
-        type: "selection",
-        option,
+        type: isCommand ? "command" : "selection",
+        value: option,
         timestamp: Date.now()
       }));
 
