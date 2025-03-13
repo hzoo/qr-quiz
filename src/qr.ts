@@ -1,7 +1,6 @@
 // Import the QR scanner library
 // Note: We'll use npm package instead of unpkg in production
 import QrScanner from 'qr-scanner';
-import { signal } from "@preact/signals";
 import { getQrCodeUrl } from "./store/partyConnection";
 import { QR_COMMANDS } from "./store/uiSignals";
 
@@ -14,9 +13,10 @@ const sunIcon = document.getElementById('sun-icon') as HTMLElement;
 const moonIcon = document.getElementById('moon-icon') as HTMLElement;
 const body = document.body;
 
-// Global state using signals
-const qrData = signal('');
-const constructedUrl = signal('');
+// Global state using regular variables since this is vanilla TS
+let qrData = '';
+let constructedUrl = '';
+let wasLastUrlValid = false;
 
 // Theme handling
 const THEME_KEY = 'qr-scanner-theme';
@@ -154,21 +154,27 @@ const scanner = new QrScanner(
   (res: QrScanner.ScanResult) => {
     if (res.data) {
       // Store the raw scanned data
-      qrData.value = res.data;
+      qrData = res.data;
       
       // Convert to URL if needed
       const url = convertCodeToUrl(res.data);
-      constructedUrl.value = url;
+      const isUrlValid = Boolean(url);
       
-      if (url) {
-        updateResult(getFriendlyMessage(res.data));
-        showScanFeedback(true);
-        enableSubmitButton();
-      } else {
-        updateResult(`Invalid code: ${res.data}`, true);
-        showScanFeedback(false);
-        disableSubmitButton();
+      // Only update UI if validity state changed
+      if (isUrlValid !== wasLastUrlValid) {
+        if (isUrlValid) {
+          enableSubmitButton();
+          showScanFeedback(true);
+        } else {
+          disableSubmitButton();
+          showScanFeedback(false);
+        }
+        wasLastUrlValid = isUrlValid;
       }
+      
+      // Always update the URL and result text since they're important for UX
+      constructedUrl = url;
+      updateResult(isUrlValid ? getFriendlyMessage(res.data) : `Invalid code: ${res.data}`, !isUrlValid);
     }
   },
   {
@@ -197,20 +203,20 @@ disableSubmitButton();
 
 // Start scanner
 scanner.start().catch(err => {
-  updateResult(`Camera error: ${err.message}`, true);
+  updateResult(err, true);
   console.error('Scanner start error:', err);
 });
 
 // Add click event listener to submit button
 submitBtn.addEventListener('click', () => {
-  if (constructedUrl.value) {
+  if (constructedUrl) {
     submitBtn.textContent = 'Loading...';
     disableSubmitButton();
     
-    fetch(constructedUrl.value)
+    fetch(constructedUrl)
       .then(response => response.text())
       .then(data => {
-        updateResult(`Option "${qrData.value}" selected!`);
+        updateResult(`Option "${qrData}" selected!`);
         console.log('Fetch response:', data);
       })
       .catch(err => {
@@ -219,8 +225,8 @@ submitBtn.addEventListener('click', () => {
       })
       .finally(() => {
         submitBtn.textContent = 'Submit';
-        qrData.value = '';
-        constructedUrl.value = '';
+        qrData = '';
+        constructedUrl = '';
         disableSubmitButton();
       });
   } else {
