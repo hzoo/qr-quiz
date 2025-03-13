@@ -64,7 +64,6 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
             let borderColor = "border-[#3d3d47]";
             let borderWidth = "border-2";
             let labelBg = "bg-[#3d3d47]";
-            let statusIndicator = null;
             
             // Update styling if option is selected - make feedback more obvious
             if (status?.isSelected) {
@@ -75,25 +74,11 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
                 bgColor = "bg-emerald-800";
                 borderColor = "border-emerald-400";
                 labelBg = "bg-emerald-500";
-                statusIndicator = (
-                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-10 ring-2 ring-[#1e1e24]">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-                      <path fillRule="evenodd" d="M19.916 4.626a.75.75 0 01.208 1.04l-9 13.5a.75.75 0 01-1.154.114l-6-6a.75.75 0 011.06-1.06l5.353 5.353 8.493-12.739a.75.75 0 011.04-.208z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                );
               } else if (status.isCorrect === false) {
                 // Incorrect answer - red theme
                 bgColor = "bg-red-800";
                 borderColor = "border-red-400";
                 labelBg = "bg-red-500";
-                statusIndicator = (
-                  <div className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg z-10 ring-2 ring-[#1e1e24]">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white" className="w-5 h-5">
-                      <path fillRule="evenodd" d="M5.47 5.47a.75.75 0 011.06 0L12 10.94l5.47-5.47a.75.75 0 111.06 1.06L13.06 12l5.47 5.47a.75.75 0 11-1.06 1.06L12 13.06l-5.47 5.47a.75.75 0 01-1.06-1.06L10.94 12 5.47 6.53a.75.75 0 010-1.06z" clipRule="evenodd" />
-                    </svg>
-                  </div>
-                );
               } else {
                 // Selected but no feedback yet
                 bgColor = "bg-[#3d3d47]";
@@ -105,36 +90,33 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
             return (
               <div 
                 key={option.id}
-                className={`${bgColor} rounded-xl ${borderWidth} ${borderColor} shadow-md overflow-hidden flex flex-col h-full transition-all relative`}
+                className={`${bgColor} rounded-xl ${borderWidth} ${borderColor} shadow-md overflow-hidden flex flex-row h-full transition-all relative`}
               >
-                {/* Status indicator icon (check/x) */}
-                {statusIndicator}
-                
-                {/* Console-style answer layout with prominent label */}
+                {/* Text section - taking more width for better layout */}
                 <div 
-                  className="flex flex-1 p-4 cursor-pointer"
+                  className="flex flex-col justify-center w-3/5 p-5 cursor-pointer"
                   onClick={() => handleOptionSelect(option.id)}
                 >
                   {/* Option label (A, B, C, D) */}
-                  <div className={`${labelBg} text-white font-bold text-xl w-10 h-10 flex items-center justify-center rounded-full shrink-0 mr-3`}>
+                  <div className={`${labelBg} text-white font-bold text-2xl w-12 h-12 flex items-center justify-center rounded-full shrink-0 mb-4`}>
                     {optionLabel}
                   </div>
                   
-                  {/* Answer text - larger for visibility */}
-                  <div className="flex items-center flex-1">
-                    <p className="text-xl sm:text-2xl">{option.text}</p>
+                  {/* Answer text - INCREASED SIZE */}
+                  <div className="flex flex-1">
+                    <p className="text-xl sm:text-2xl md:text-2xl font-medium leading-tight">{option.text}</p>
                   </div>
                 </div>
                 
-                {/* QR code section (can be hidden) */}
+                {/* QR code section - adjusted for better spacing */}
                 {!hideQrCodes.value && (
-                  <div className="bg-[#23232b] border-t border-[#3d3d47] p-2 flex justify-center">
+                  <div className="bg-[#23232b] border-l border-[#3d3d47] flex justify-center items-center w-2/5 p-4">
                     <QRCodeOption
                       option={option}
                       onScan={handleOptionSelect}
                       isSelected={status?.isSelected || false}
                       isCorrect={status?.isCorrect}
-                      qrSize={100} // Smaller QR codes since they'll be printed separately
+                      qrSize={160} // Slightly smaller QR size to prevent squishing
                     />
                   </div>
                 )}

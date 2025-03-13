@@ -19,7 +19,7 @@ function QRCodeOptionImpl({
   isSelected = false, 
   isCorrect = null,
   hideQrCode = false,
-  qrSize = 200 // Default size if not specified
+  qrSize = 280 // Increased from 200 to make QR code larger
 }: QRCodeOptionProps) {
   useSignals();
   
@@ -73,21 +73,18 @@ function QRCodeOptionImpl({
     
     return (
       <div
-        className="p-3 rounded-lg cursor-pointer hover:scale-105 transition-transform relative"
+        className="rounded-lg cursor-pointer hover:scale-102 transition-transform relative"
         onClick={handleClick}
       >
         {/* QR code with option letter */}
-        <div className="flex flex-col items-center">
+        <div className="relative flex flex-col items-center">
           {statusIcon}
-          <div className={`bg-white p-2 rounded-lg shadow-md border-4 ${borderColor} transition-colors`}>
+          <div className={`bg-white p-3 rounded-xl shadow-lg border-4 ${borderColor} transition-colors`}>
             <QRCode
               value={qrValue}
               size={qrSize}
               className="w-full h-full"
             />
-          </div>
-          <div className={`mt-2 ${badgeColor} text-[#1e1e24] font-bold px-3 py-1 rounded-full text-center transition-colors`}>
-            {optionLetter}
           </div>
         </div>
       </div>
