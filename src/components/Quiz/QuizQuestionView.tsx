@@ -22,32 +22,15 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
     // Get fresh values from the signal each time
     const { lastAnswer, isCorrect } = quizState.value;
     
-    console.log('Computing option status:', {
-      lastAnswer,
-      isCorrect,
-      localSelected: localSelectedOption.value,
-      currentOptions: currentQuestion.options
-    });
-    
-    return currentQuestion.options.map(option => {
-      const status = {
-        id: option.id,
-        isSelected: option.id === localSelectedOption.value || option.id === lastAnswer,
-        isCorrect: option.id === lastAnswer ? isCorrect : null
-      };
-      console.log(`Option ${option.id} status:`, status);
-      return status;
-    });
+    return currentQuestion.options.map(option => ({
+      id: option.id,
+      isSelected: option.id === localSelectedOption.value || option.id === lastAnswer,
+      isCorrect: option.id === lastAnswer ? isCorrect : null
+    }));
   });
 
   // Handle option selection with immediate local state update
   const handleOptionSelect = (optionId: string) => {
-    console.log('Option selected:', {
-      optionId,
-      currentQuestion,
-      lastAnswer: quizState.value.lastAnswer,
-      isCorrect: quizState.value.isCorrect
-    });
     // Update local state immediately
     localSelectedOption.value = optionId;
     // Call the parent handler which will eventually update quiz state
@@ -55,10 +38,10 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
   };
 
   return (
-    <main className="flex-1 p-4 flex flex-col max-h-[calc(100vh-109px)] overflow-hidden">
-      <div className="w-full mx-auto flex-1 flex flex-col max-w-7xl">
+    <main className="flex-1 p-4 flex flex-col min-h-0">
+      <div className="w-full mx-auto flex-1 flex flex-col max-w-7xl min-h-0">
         {/* Question with larger text for projector visibility */}
-        <div className="bg-[#2b2b33] p-6 rounded-lg shadow-md relative mb-4">
+        <div className="bg-[#2b2b33] p-6 rounded-lg shadow-md relative mb-4 shrink-0">
           {currentQuestion.isDemo && (
             <div className="absolute top-0 right-0 bg-[#e9a178] text-[#1e1e24] px-2 py-1 text-xs font-medium rounded-tr-lg rounded-bl-lg">
               DEMO
@@ -67,13 +50,10 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
           <h2 className="text-2xl sm:text-3xl md:text-4xl text-center font-medium mb-2 leading-tight">
             {currentQuestion.text}
           </h2>
-          <p className="text-center text-sm text-gray-400">
-            {hideQrCodes.value ? "Tap an option to answer" : "Scan a barcode or tap an option to answer"}
-          </p>
         </div>
         
         {/* Game-console style answer grid with better visibility */}
-        <div className="grid grid-cols-2 gap-4 flex-1">
+        <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-auto">
           {currentQuestion.options.map((option, index) => {
             // Use gaming console style labeling (A, B, C, D)
             const optionLabel = String.fromCharCode(65 + index);

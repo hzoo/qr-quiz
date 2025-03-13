@@ -5,7 +5,8 @@ import {
   quizState, 
   answerQuestion, 
   initQuiz,
-  isGeneratingNewQuestions 
+  isGeneratingNewQuestions,
+  restartQuiz
 } from "@/store/quiz";
 import { 
   addMessageHandler,
@@ -28,25 +29,14 @@ export function Quiz() {
 
   // Handle scan events from the barcode scanner - just handles answers, not commands
   const handleScan = useCallback((value: string) => {
-    console.log("Processing scan value for quiz answer:", value);
-    
     // Not a command - handle as answer
     // Save the reference to the current question's options before moving to the next
     const currentQuestion = quizState.value.questions[quizState.value.currentQuestionIndex];
     const optionIds = currentQuestion?.options.map(option => option.id) || [];
     
-    console.log('Quiz state before answer:', {
-      currentQuestion,
-      optionIds,
-      value,
-      quizState: quizState.value
-    });
-    
     // First try exact match
     if (optionIds.includes(value)) {
-      console.log('Exact match found, answering with:', value);
       answerQuestion(value);
-      console.log('Quiz state after exact match:', quizState.value);
       return;
     }
     
@@ -57,9 +47,7 @@ export function Quiz() {
     });
     
     if (matchingId) {
-      console.log('Letter match found, answering with:', matchingId);
       answerQuestion(matchingId);
-      console.log('Quiz state after letter match:', quizState.value);
     }
   }, []);
   
@@ -67,7 +55,6 @@ export function Quiz() {
   useEffect(() => {
     // Only initialize on first load if we need to
     if (quizState.value.questions.length === 0 && !isGeneratingNewQuestions.value) {
-      console.log('Initializing quiz with questions');
       isGeneratingNewQuestions.value = true;
       initQuiz().finally(() => {
         isGeneratingNewQuestions.value = false;
@@ -79,7 +66,6 @@ export function Quiz() {
   // Register command handler
   useEffect(() => {
     const handlePartyMessage = (data: MessageData) => {
-      console.log('Party message:', data);
       if ((data.type === 'scan' || data.type === 'selection') && data.option) {
         handleScan(data.option);
       }
@@ -97,7 +83,7 @@ export function Quiz() {
   const currentQuestion = questions[currentQuestionIndex];
 
   // Base container class with console game styling
-  const containerClasses = "flex flex-col h-[100dvh] min-h-0 max-h-[100dvh] bg-[#1e1e24] text-[#ebebf0] overflow-hidden";
+  const containerClasses = "flex flex-col h-screen min-h-0 bg-[#1e1e24] text-[#ebebf0]";
 
   // Determine the content to render based on quiz state
   let content: ReactNode;
@@ -116,20 +102,24 @@ export function Quiz() {
   // Return a single layout with conditional content
   return (
     <div className={containerClasses}>
-      <BarcodeScannerView
-        onScan={handleScan}
-      />
+      <div className="flex-none">
+        <BarcodeScannerView
+          onScan={handleScan}
+        />
+        
+        {showHeaderAndHelp && (
+          <>
+            <HelpModal />
+            <QuizHeader
+              title="Barcode Quiz"
+            />
+          </>
+        )}
+      </div>
       
-      {showHeaderAndHelp && (
-        <>
-          <HelpModal />
-          <QuizHeader
-            title="Barcode Quiz"
-          />
-        </>
-      )}
-      
-      {content}
+      <div className="flex-1 min-h-0 overflow-hidden h-[calc(100vh-112px)]">
+        {content}
+      </div>
     </div>
   );
 }

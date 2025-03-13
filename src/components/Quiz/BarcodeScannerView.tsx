@@ -17,18 +17,22 @@ export function BarcodeScannerView({
     console.log("Scanned value:", value);
     
     // Check if the scanned value is a special command
-    if (value.startsWith(QR_COMMANDS.PREFIX)) {
+    // Use lowercase comparison to handle case insensitivity 
+    if (value.toLowerCase().startsWith(QR_COMMANDS.PREFIX.toLowerCase())) {
+      // Convert value to lowercase for case-insensitive command matching
+      const lowerValue = value.toLowerCase();
+      
       // Handle command based on what was scanned
-      switch (value) {
-        case QR_COMMANDS.RESET:
+      switch (lowerValue) {
+        case QR_COMMANDS.RESET.toLowerCase():
           console.log("Reset command detected");
           restartQuiz();
           break;
-        case QR_COMMANDS.CLOSE_HELP:
+        case QR_COMMANDS.CLOSE_HELP.toLowerCase():
           console.log("Close help command detected");
           helpModalOpen.value = false;
           break;
-        case QR_COMMANDS.INSTRUCTIONS:
+        case QR_COMMANDS.INSTRUCTIONS.toLowerCase():
           console.log("Instructions command detected");
           helpModalOpen.value = true;
           break;

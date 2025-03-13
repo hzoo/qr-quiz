@@ -30,7 +30,8 @@ export default class Server implements Party.Server {
     
     if (pathParts.length >= 4 && pathParts[0] === 'parties' && pathParts[1] === 'main' && pathParts[2] === 'quiz') {
       const option = pathParts[3]; // The fourth part is the option ID
-      const isCommand = option.startsWith('c:');
+      // Make command detection case-insensitive by converting to lowercase
+      const isCommand = option.toLowerCase().startsWith('c:');
       
       console.log(`Processing ${isCommand ? 'command' : 'option'}: ${option}`);
 
