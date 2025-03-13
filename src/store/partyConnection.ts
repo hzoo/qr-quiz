@@ -52,13 +52,13 @@ export function initPartyConnection(roomId = "quiz") {
 
     // Handle connection open
     socket?.addEventListener("open", () => {
-      console.log("Connected to PartyKit server");
+      // console.log("Connected to PartyKit server");
       connectionStatus.value = "connected";
     });
 
     // Handle connection close
     socket?.addEventListener("close", () => {
-      console.log("Disconnected from PartyKit server");
+      // console.log("Disconnected from PartyKit server");
       connectionStatus.value = "disconnected";
     });
 
