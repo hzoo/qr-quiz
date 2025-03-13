@@ -144,23 +144,6 @@ export function QuizHeader({
             </svg>
             <span className="hidden sm:inline">{hideQrCodes.value ? "Show QR" : "Hide QR"}</span>
           </button>
-          
-          {/* Phone scanner QR code - more compact */}
-          <div className="group relative" onClick={() => window.open("https://barcode-fun-party.hzoo.partykit.dev/qr.html", "_blank")}>
-            <div className="flex items-center p-1 bg-white rounded-md hover:bg-gray-100 transition-colors border border-[#d8b4a0] cursor-pointer">
-              <QRCode 
-                value="https://barcode-fun-party.hzoo.partykit.dev/qr.html" 
-                size={32}
-                className="w-8 h-8"
-              />
-              <span className="text-[10px] leading-tight text-[#1e1e24] font-bold px-1">
-                PHONE<br/>SCANNER
-              </span>
-            </div>
-            <div className="absolute right-0 top-full mt-1 p-1 bg-[#2b2b33] rounded-md border border-[#3d3d47] shadow-lg text-xs whitespace-nowrap z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Scan or click to open QR scanner on phone
-            </div>
-          </div>
         </div>
       </div>
     </header>

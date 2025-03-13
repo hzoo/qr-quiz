@@ -35,9 +35,31 @@ export function Quiz() {
     const currentQuestion = quizState.value.questions[quizState.value.currentQuestionIndex];
     const optionIds = currentQuestion?.options.map(option => option.id) || [];
     
-    // If the scan matches an option ID, answer with that ID
+    console.log('Quiz state before answer:', {
+      currentQuestion,
+      optionIds,
+      value,
+      quizState: quizState.value
+    });
+    
+    // First try exact match
     if (optionIds.includes(value)) {
+      console.log('Exact match found, answering with:', value);
       answerQuestion(value);
+      console.log('Quiz state after exact match:', quizState.value);
+      return;
+    }
+    
+    // Then try to match just the letter (A, B, C, D) from phone
+    const matchingId = optionIds.find(id => {
+      const parts = id.split('_');
+      return parts[parts.length - 1] === value;
+    });
+    
+    if (matchingId) {
+      console.log('Letter match found, answering with:', matchingId);
+      answerQuestion(matchingId);
+      console.log('Quiz state after letter match:', quizState.value);
     }
   }, []);
   
@@ -58,7 +80,7 @@ export function Quiz() {
   useEffect(() => {
     const handlePartyMessage = (data: MessageData) => {
       console.log('Party message:', data);
-      if (data.type === 'scan' && data.option) {
+      if ((data.type === 'scan' || data.type === 'selection') && data.option) {
         handleScan(data.option);
       }
     };
@@ -75,7 +97,7 @@ export function Quiz() {
   const currentQuestion = questions[currentQuestionIndex];
 
   // Base container class with console game styling
-  const containerClasses = "flex flex-col h-screen bg-[#1e1e24] text-[#ebebf0] overflow-hidden";
+  const containerClasses = "flex flex-col h-[100dvh] min-h-0 max-h-[100dvh] bg-[#1e1e24] text-[#ebebf0] overflow-hidden";
 
   // Determine the content to render based on quiz state
   let content: ReactNode;

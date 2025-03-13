@@ -555,7 +555,7 @@ export function answerQuestion(answerId: string) {
         showResult: true,
       };
     }
-  }, 2000); // Increased from 800ms to 2000ms to allow time to see the feedback
+  }, 1000); // Reduced from 2000ms to 1000ms for a quicker transition
 }
 
 // Action to restart the quiz

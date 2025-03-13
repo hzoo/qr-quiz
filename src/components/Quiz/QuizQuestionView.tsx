@@ -10,9 +10,8 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
   // Add local state to track the selection immediately
   const localSelectedOption = useSignal<string | null>(null);
   
-  // Get data directly from quizState
-  const { currentQuestionIndex, questions, lastAnswer } = quizState.value;
-  const currentQuestion = questions[currentQuestionIndex];
+  // Get current question directly from state
+  const currentQuestion = quizState.value.questions[quizState.value.currentQuestionIndex];
   
   if (!currentQuestion) {
     return null;
@@ -20,16 +19,35 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
   
   // Use computed to derive the option status (active, correct, incorrect)
   const optionStatus = useComputed(() => {
-    return currentQuestion.options.map(option => ({
-      id: option.id,
-      // Use both local selection and quiz state selection
-      isSelected: option.id === localSelectedOption.value || option.id === lastAnswer,
-      isCorrect: option.id === lastAnswer ? option.isCorrect : null
-    }));
+    // Get fresh values from the signal each time
+    const { lastAnswer, isCorrect } = quizState.value;
+    
+    console.log('Computing option status:', {
+      lastAnswer,
+      isCorrect,
+      localSelected: localSelectedOption.value,
+      currentOptions: currentQuestion.options
+    });
+    
+    return currentQuestion.options.map(option => {
+      const status = {
+        id: option.id,
+        isSelected: option.id === localSelectedOption.value || option.id === lastAnswer,
+        isCorrect: option.id === lastAnswer ? isCorrect : null
+      };
+      console.log(`Option ${option.id} status:`, status);
+      return status;
+    });
   });
 
   // Handle option selection with immediate local state update
   const handleOptionSelect = (optionId: string) => {
+    console.log('Option selected:', {
+      optionId,
+      currentQuestion,
+      lastAnswer: quizState.value.lastAnswer,
+      isCorrect: quizState.value.isCorrect
+    });
     // Update local state immediately
     localSelectedOption.value = optionId;
     // Call the parent handler which will eventually update quiz state
@@ -61,9 +79,6 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
             const optionLabel = String.fromCharCode(65 + index);
             const status = optionStatus.value.find(s => s.id === option.id);
             
-            // Debug logs to help track state
-            console.log(`Option ${optionLabel} (${option.id}):`, status);
-            
             // Determine styling based on selection state - More prominent colors
             let bgColor = "bg-[#2b2b33]";
             let borderColor = "border-[#3d3d47]";
@@ -73,12 +88,12 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
             
             // Update styling if option is selected - make feedback more obvious
             if (status?.isSelected) {
-              borderWidth = "border-4"; // Thicker border for selected options
+              borderWidth = "border-4";
               
               if (status.isCorrect === true) {
-                // Correct answer - green theme with more visible colors
-                bgColor = "bg-emerald-800"; // Solid color instead of transparent
-                borderColor = "border-emerald-400"; // Brighter green for visibility
+                // Correct answer - green theme
+                bgColor = "bg-emerald-800";
+                borderColor = "border-emerald-400";
                 labelBg = "bg-emerald-500";
                 statusIndicator = (
                   <div className="absolute -top-3 -right-3 w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center shadow-lg z-10 ring-2 ring-[#1e1e24]">
@@ -88,9 +103,9 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
                   </div>
                 );
               } else if (status.isCorrect === false) {
-                // Incorrect answer - red theme with more visible colors
-                bgColor = "bg-red-800"; // Solid color instead of transparent
-                borderColor = "border-red-400"; // Brighter red for visibility
+                // Incorrect answer - red theme
+                bgColor = "bg-red-800";
+                borderColor = "border-red-400";
                 labelBg = "bg-red-500";
                 statusIndicator = (
                   <div className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center shadow-lg z-10 ring-2 ring-[#1e1e24]">
@@ -100,7 +115,7 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
                   </div>
                 );
               } else {
-                // Selected but no feedback yet - more obvious highlight
+                // Selected but no feedback yet
                 bgColor = "bg-[#3d3d47]";
                 borderColor = "border-[#e9a178]";
                 labelBg = "bg-[#e9a178]";
