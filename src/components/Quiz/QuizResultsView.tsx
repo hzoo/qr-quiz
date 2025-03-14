@@ -135,7 +135,6 @@ export function QuizResultsView() {
           >
             {isResetting.value ? "Resetting..." : "Play Again"}
           </button>
-          <div className="text-sm text-gray-400 mt-2 text-center">Scan QR or tap button</div>
         </div>
       </div>
     </div>

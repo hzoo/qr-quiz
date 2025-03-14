@@ -8,6 +8,18 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
 } as const;
 
+// Type for quiz questions
+interface QuizQuestion {
+  id: string;
+  text: string;
+  options: Array<{
+    id: string;
+    text: string;
+    isCorrect: boolean;
+  }>;
+  isDemo?: boolean;
+}
+
 // Helper to create JSON responses
 const jsonResponse = (data: unknown, status = 200) => {
   return new Response(JSON.stringify(data), {
@@ -18,6 +30,19 @@ const jsonResponse = (data: unknown, status = 200) => {
 
 export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
+
+  async onStart() {
+    // Initialize question cache if it doesn't exist
+    const cache = await this.room.storage.get<QuizQuestion[]>("questionCache");
+    if (!cache || cache.length < 20) {
+      try {
+        const questions = await generateQuestions(20);
+        await this.room.storage.put("questionCache", questions);
+      } catch (error) {
+        console.error("Failed to initialize question cache:", error);
+      }
+    }
+  }
 
   onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
     console.log(
@@ -41,8 +66,36 @@ export default class Server implements Party.Server {
     if (url.pathname === '/parties/main/quiz/generate') {
       try {
         const count = Number.parseInt(new URLSearchParams(url.search).get('count') || '4', 10);
+        
+        // Try to get questions from cache first
+        const cache = await this.room.storage.get<QuizQuestion[]>("questionCache") || [];
+        
+        if (cache.length >= count) {
+          // Use cached questions and remove them from cache
+          const questions = cache.slice(0, count);
+          const remainingQuestions = cache.slice(count);
+          await this.room.storage.put("questionCache", remainingQuestions);
+          
+          // Generate more questions in background if cache is getting low
+          if (remainingQuestions.length < 10) {
+            generateQuestions(20).then(async (newQuestions) => {
+              await this.room.storage.put("questionCache", [...remainingQuestions, ...newQuestions]);
+            }).catch(console.error);
+          }
+          
+          return jsonResponse({ success: true, questions });
+        }
+        
+        // If not enough cached questions, generate new ones
         const questions = await generateQuestions(count);
-        return jsonResponse({ success: true, questions });
+        
+        // Cache any extra questions for future use
+        if (questions.length > count) {
+          const extraQuestions = questions.slice(count);
+          await this.room.storage.put("questionCache", [...cache, ...extraQuestions]);
+        }
+        
+        return jsonResponse({ success: true, questions: questions.slice(0, count) });
       } catch (error) {
         console.error('Error generating questions:', error);
         return jsonResponse({

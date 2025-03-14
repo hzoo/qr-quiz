@@ -29,7 +29,7 @@ export function HelpModal() {
           <div className="flex items-center gap-3">
             <div className="bg-white p-2 rounded-lg">
               <QRCode 
-                value="https://barcode-fun-party.hzoo.partykit.dev/qr.html"
+                value="https://qr-quiz.henryzoo.com/qr"
                 className="w-[80px] h-[80px]"
               />
             </div>

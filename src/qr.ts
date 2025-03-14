@@ -3,6 +3,7 @@
 import QrScanner from 'qr-scanner';
 import { getQrCodeUrl } from "./store/partyConnection";
 import { QR_COMMANDS } from "./store/uiSignals";
+import { getQrCommandMessage } from "./utils/qrCommands";
 
 // DOM Elements
 const video = document.getElementById('qr-video') as HTMLVideoElement;
@@ -145,29 +146,6 @@ function convertCodeToUrl(code: string): string {
   return getQrCodeUrl(cleanCode);
 }
 
-// Function to get user-friendly message for QR codes
-function getFriendlyMessage(code: string): string {
-  // Convert to lowercase for case-insensitive comparison
-  const lowerCode = code.trim().toLowerCase();
-  
-  // Check if it's a command
-  if (lowerCode.startsWith(QR_COMMANDS.PREFIX.toLowerCase())) {
-    switch (lowerCode) {
-      case QR_COMMANDS.RESET.toLowerCase():
-        return "Restart Quiz";
-      case QR_COMMANDS.CLOSE_HELP.toLowerCase():
-        return "Close Help Menu";
-      case QR_COMMANDS.INSTRUCTIONS.toLowerCase():
-        return "Open Help Menu";
-      default:
-        return `Unknown command: ${code}`;
-    }
-  }
-  
-  // For non-command codes (quiz answers), just show the option letter
-  return `Pick ${code.toUpperCase()}`;
-}
-
 // Initialize QR scanner
 const scanner = new QrScanner(
   video,
@@ -195,7 +173,7 @@ const scanner = new QrScanner(
         
         // Only update result text when something changes
         constructedUrl = url;
-        updateResult(isUrlValid ? getFriendlyMessage(res.data) : `Invalid code: ${res.data}`, !isUrlValid);
+        updateResult(isUrlValid ? getQrCommandMessage(res.data) : `Invalid code: ${res.data}`, !isUrlValid);
       }
     }
   },

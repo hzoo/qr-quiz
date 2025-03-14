@@ -3,8 +3,9 @@ import { hideQrCodes } from "@/store/uiSignals";
 import { useSignals } from "@preact/signals-react/runtime";
 import { useComputed, useSignal } from "@preact/signals-react";
 import { quizState, answerQuestion } from "@/store/quiz";
+import { handleScan } from "@/utils/handleScan";
 
-export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string) => void }) {
+export function QuizQuestionView() {
   useSignals();
   
   // Add local state to track the selection immediately
@@ -12,10 +13,6 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
   
   // Get current question directly from state
   const currentQuestion = quizState.value.questions[quizState.value.currentQuestionIndex];
-  
-  if (!currentQuestion) {
-    return null;
-  }
   
   // Use computed to derive the option status (active, correct, incorrect)
   const optionStatus = useComputed(() => {
@@ -28,6 +25,10 @@ export function QuizQuestionView({ handleScan }: { handleScan: (optionId: string
       isCorrect: option.id === lastAnswer ? isCorrect : null
     }));
   });
+
+  if (!currentQuestion) {
+    return null;
+  }
 
   // Handle option selection with immediate local state update
   const handleOptionSelect = (optionId: string) => {

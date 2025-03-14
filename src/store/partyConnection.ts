@@ -1,6 +1,8 @@
 import { signal } from "@preact/signals-react";
 import type { PartySocket } from "partysocket";
 import { getPartyKitHost, createPartyKitQrCodeUrl } from "../utils/url";
+import { handleQrCommand } from "../utils/qrCommands";
+import { handleScan } from "../utils/handleScan";
 
 // Signal to track connection status
 export const connectionStatus = signal<"disconnected" | "connecting" | "connected">("disconnected");
@@ -8,7 +10,7 @@ export const connectionStatus = signal<"disconnected" | "connecting" | "connecte
 // Store the PartySocket instance
 let socket: PartySocket | null = null;
 
-// Type definition for message handlers
+// Type definition for message data
 export type MessageData = {
   type: "command" | "selection";
   value?: string;
@@ -17,24 +19,6 @@ export type MessageData = {
   message?: string;
   success?: boolean;
 };
-
-type MessageCallback = (data: MessageData) => void;
-
-// Store message handlers
-const messageHandlers: MessageCallback[] = [];
-
-// Add a message handler
-export function addMessageHandler(callback: MessageCallback) {
-  messageHandlers.push(callback);
-}
-
-// Remove a message handler
-export function removeMessageHandler(callback: MessageCallback) {
-  const index = messageHandlers.indexOf(callback);
-  if (index !== -1) {
-    messageHandlers.splice(index, 1);
-  }
-}
 
 // Initialize the PartyKit connection
 export function initPartyConnection(roomId = "quiz") {
@@ -53,36 +37,28 @@ export function initPartyConnection(roomId = "quiz") {
 
     // Handle connection open
     socket?.addEventListener("open", () => {
-      // console.log("Connected to PartyKit server");
       connectionStatus.value = "connected";
     });
 
     // Handle connection close
     socket?.addEventListener("close", () => {
-      // console.log("Disconnected from PartyKit server");
       connectionStatus.value = "disconnected";
     });
 
     // Handle messages from the server
     socket?.addEventListener("message", (event) => {
       try {
-        const data = JSON.parse(event.data);
+        const data: MessageData = JSON.parse(event.data);
         
-        if (messageHandlers.length === 0) {
-          console.warn("PartyKit message received but no handlers registered:", data);
-          return;
+        if (data.type === "command" && data.value) {
+          // Use our centralized command handler
+          handleQrCommand(data.value);
+        } else if (data.type === "selection" && data.value) {
+          // Handle regular quiz answers
+          handleScan(data.value);
         }
-        
-        // Notify all registered handlers
-        messageHandlers.forEach(handler => {
-          try {
-            handler(data);
-          } catch (error) {
-            console.error("Error in message handler:", error);
-          }
-        });
       } catch (error) {
-        console.error("Error parsing message:", error);
+        console.error("Error handling message:", error);
       }
     });
   });
