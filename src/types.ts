@@ -18,7 +18,6 @@ export type QuizState = {
   showResult: boolean;
   lastAnswer: string | null;
   isCorrect: boolean | null;
-  isLoading: boolean;
   error: string | null;
   userAnswers: Record<string, string>;
 }; 

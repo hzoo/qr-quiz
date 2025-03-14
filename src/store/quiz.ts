@@ -99,27 +99,38 @@ const getQuestionsFromPool = (count: number): Question[] => {
 
 // Initial quiz state
 const initialQuizState: QuizState = {
-  questions: [], // Start with no questions, we'll generate them
+  questions: [], // Start empty, we'll fill it right away
   currentQuestionIndex: 0,
   score: 0,
   showResult: false,
   lastAnswer: null,
   isCorrect: null,
-  isLoading: true, // Start in loading state
   error: null,
   userAnswers: {},
 };
 
-// Create signals
-export const quizState = signal<QuizState>(initialQuizState);
+// Create signals with initial pool questions if available
+const pool = loadQuestionPool();
+export const quizState = signal<QuizState>({
+  ...initialQuizState,
+  questions: pool.length >= 4 
+    ? getQuestionsFromPool(4) 
+    : defaultQuestions // Fallback to demo questions only if no pool
+});
+
+// If pool is getting low, generate more in background
+if (pool.length < minPoolSize) {
+  generateQuestionsForPool();
+}
+
 export const geminiModel = signal<string>("gemini-2.0-flash");
 
 // Set up reactive effects
 // Effect for queuing new questions when at results screen
 effect(() => {
-  const { showResult, isLoading } = quizState.value;
+  const { showResult } = quizState.value;
   
-  if (showResult && nextQuestionsQueue.value.length === 0 && !isLoading && 
+  if (showResult && nextQuestionsQueue.value.length === 0 && 
       !isGeneratingNewQuestions.value && shouldQueueNewQuestions.value) {
     console.log('Queuing next questions in background');
     isGeneratingNewQuestions.value = true;
@@ -132,9 +143,9 @@ effect(() => {
 
 // Effect to set flag to queue new questions when showing results
 effect(() => {
-  const { showResult, isLoading } = quizState.value;
+  const { showResult } = quizState.value;
   
-  if (showResult && nextQuestionsQueue.value.length === 0 && !isLoading && 
+  if (showResult && nextQuestionsQueue.value.length === 0 && 
       !isGeneratingNewQuestions.value && !shouldQueueNewQuestions.value) {
     console.log('Setting flag to queue new questions');
     shouldQueueNewQuestions.value = true;
@@ -144,11 +155,6 @@ effect(() => {
 // Generate new questions and queue them
 export async function generateQuestions(count = 4, isPoolGeneration = false) {
   const currentState = quizState.value;
-  
-  // Set loading state
-  if (!currentState.showResult && !isPoolGeneration) {
-    quizState.value = { ...currentState, isLoading: true, error: null };
-  }
   
   try {
     // Call the backend endpoint: https://ai.google.dev/gemini-api/docs/structured-output?lang=rest
@@ -185,7 +191,6 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
         quizState.value = {
           ...quizState.value,
           questions: questionsForNow,
-          isLoading: false,
         };
       }
       
@@ -201,7 +206,6 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
       if (!currentState.showResult) {
         quizState.value = {
           ...quizState.value,
-          isLoading: false,
           error: error instanceof Error ? error.message : "Failed to load questions. Please try again.",
         };
       }
@@ -215,7 +219,6 @@ export async function generateQuestions(count = 4, isPoolGeneration = false) {
         quizState.value = {
           ...quizState.value,
           questions: fallbackQuestions,
-          isLoading: false,
         };
       }
       
@@ -288,70 +291,48 @@ export function answerQuestion(answerId: string) {
   }, 1000); // Reduced from 2000ms to 1000ms for a quicker transition
 }
 
-// Action to restart the quiz
-export async function restartQuiz() {
-  // Set loading state
+export function resetQuizState() {
+  // Immediately reset to initial state
   quizState.value = {
-    ...quizState.value,
-    isLoading: true,
-    error: null,
+    ...initialQuizState,
   };
+  
+  // Clear the queue
+  nextQuestionsQueue.value = [];
+}
 
+export async function generateNewQuestions() {
   try {
-    // Force generation of new questions every time
+    // Generate new questions in background
     const newQuestions = await generateQuestions(4);
     
     if (!newQuestions || newQuestions.length === 0) {
       throw new Error("Failed to generate new questions");
     }
     
-    // Reset to initial state with new questions
-    quizState.value = {
-      ...initialQuizState,
-      questions: newQuestions,
-      isLoading: false,
-    };
-    
-    // Clear the queue
-    nextQuestionsQueue.value = [];
-  } catch (error) {
-    console.error("Error restarting quiz:", error);
+    // Update state with new questions
     quizState.value = {
       ...quizState.value,
-      isLoading: false,
-      error: error instanceof Error ? error.message : "Failed to restart quiz",
+      questions: newQuestions,
+    };
+  } catch (error) {
+    console.error("Error generating new questions:", error);
+    quizState.value = {
+      ...quizState.value,
+      error: error instanceof Error ? error.message : "Failed to generate new questions",
     };
   }
 }
 
+export function restartQuiz() {
+  resetQuizState(); // Reset immediately
+  generateNewQuestions(); // Start generating questions in background
+}
+
 // Initialize the app with real questions instead of demo questions
 export async function initQuiz() {
-  // Try to load from the pool first
-  const pool = loadQuestionPool();
-  if (pool.length >= 4) {
-    const questions = getQuestionsFromPool(4);
-    quizState.value = {
-      ...quizState.value,
-      questions,
-      isLoading: false,
-    };
-    
-    // If pool is getting low, generate more in background
-    if (pool.length < minPoolSize) {
-      generateQuestionsForPool();
-    }
-  } else {
-    // Generate initial questions
-    try {
-      await generateQuestions(4);
-    } catch (error) {
-      console.error("Error initializing quiz:", error);
-      // Fall back to demo questions if generation fails
-      quizState.value = {
-        ...quizState.value,
-        questions: defaultQuestions,
-        isLoading: false,
-      };
-    }
+  // Only generate pool in background if we started with demo questions
+  if (quizState.value.questions.some(q => q.isDemo)) {
+    generateQuestionsForPool();
   }
 } 

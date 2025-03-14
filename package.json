@@ -8,7 +8,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "partykit": "partykit dev",
-    "deploy": "bun run build && partykit deploy",
+    "deploy": "bun run build && partykit deploy --with-vars",
     "deploy:cf": "bun run build && wrangler pages deploy dist --project-name qr-quiz"
   },
   "dependencies": {

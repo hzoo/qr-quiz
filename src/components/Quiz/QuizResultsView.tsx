@@ -3,11 +3,12 @@ import type { Question } from "@/types";
 import { getQrCodeUrl } from "@/store/partyConnection";
 import { QR_COMMANDS } from "@/store/uiSignals";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useComputed } from "@preact/signals-react";
+import { useComputed, useSignal } from "@preact/signals-react";
 import { quizState, restartQuiz } from "@/store/quiz";
 
 export function QuizResultsView() {
   useSignals();
+  const isResetting = useSignal(false);
   
   // Get data directly from quizState
   const { questions, userAnswers } = quizState.value;
@@ -18,6 +19,16 @@ export function QuizResultsView() {
     const userOption = question?.options.find(o => o.id === userAnswers[questionId]);
     return userOption?.isCorrect;
   }).length;
+  
+  const handleReset = () => {
+    isResetting.value = true;
+    // Reset immediately
+    restartQuiz();
+    // Just show reset animation briefly
+    setTimeout(() => {
+      isResetting.value = false;
+    }, 500);
+  };
   
   return (
     <div className="h-[calc(100vh-112px)] w-full flex bg-[#1e1e24]">
@@ -100,20 +111,29 @@ export function QuizResultsView() {
         {/* QR code for reset */}
         <div className="bg-[#2b2b33] p-4 rounded-md shadow-md border border-[#3d3d47] flex flex-col items-center">
           <div 
-            className="bg-white p-3 rounded-md cursor-pointer hover:scale-105 transition-transform mb-4"
-            onClick={() => restartQuiz()}
+            className={`bg-white p-3 rounded-md transition-all duration-500 mb-4 border-4 ${
+              isResetting.value 
+                ? "border-blue-400 scale-105 shadow-lg shadow-blue-900/20 pointer-events-none cursor-not-allowed" 
+                : "border-white scale-100 cursor-pointer hover:scale-105"
+            }`}
+            onClick={handleReset}
           >
             <QRCode 
               size={140}
-              value={QR_COMMANDS.RESET} 
+              value={isResetting.value ? "" : QR_COMMANDS.RESET} 
               className="w-[140px]"
             />
           </div>
           <button 
-            onClick={() => restartQuiz()} 
-            className="bg-[#e9a178] text-[#1e1e24] py-3 px-6 rounded-lg font-bold text-xl hover:bg-[#f3b28a] transition-colors w-full text-center"
+            onClick={handleReset} 
+            disabled={isResetting.value}
+            className={`py-3 px-6 rounded-lg font-bold text-xl transition-colors w-full text-center ${
+              isResetting.value 
+                ? "bg-blue-500 text-white cursor-not-allowed opacity-80" 
+                : "bg-[#e9a178] text-[#1e1e24] hover:bg-[#f3b28a] cursor-pointer"
+            }`}
           >
-            Play Again
+            {isResetting.value ? "Resetting..." : "Play Again"}
           </button>
           <div className="text-sm text-gray-400 mt-2 text-center">Scan QR or tap button</div>
         </div>

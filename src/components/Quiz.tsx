@@ -17,7 +17,6 @@ import {
 // Import refactored components
 import { QuizHeader } from "./Quiz/QuizHeader";
 import { QuizErrorView } from "./Quiz/QuizErrorView";
-import { QuizLoadingView } from "./Quiz/QuizLoadingView";
 import { QuizResultsView } from "./Quiz/QuizResultsView";
 import { QuizQuestionView } from "./Quiz/QuizQuestionView";
 import { HelpModal } from "./Quiz/HelpModal";
@@ -99,8 +98,6 @@ export function Quiz() {
 
   if (error) {
     content = <QuizErrorView error={error} />;
-  } else if (!currentQuestion) {
-    content = <QuizLoadingView />;
   } else if (showResult) {
     content = <QuizResultsView />;
   } else {
