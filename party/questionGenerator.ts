@@ -36,7 +36,7 @@ Each question MUST be:
 
 The response will be automatically formatted as JSON with the specified schema.`;
 
-  const apiKey = process.env.VITE_GEMINI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     throw new Error("Gemini API key not found in environment variables");
   }
@@ -68,15 +68,13 @@ The response will be automatically formatted as JSON with the specified schema.`
                 text: { type: "STRING" },
                 options: {
                   type: "ARRAY",
-                  minItems: 4,
-                  maxItems: 4,
                   items: {
                     type: "OBJECT",
                     properties: {
                       text: { type: "STRING" },
                       isCorrect: { type: "BOOLEAN" }
                     },
-                    required: ["text", "isCorrect"]
+                    required: ["text"]
                   }
                 }
               },

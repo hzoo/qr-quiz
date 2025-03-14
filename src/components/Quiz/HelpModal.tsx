@@ -1,6 +1,7 @@
 import { QRCode } from "@/components/QRCode";
 import { helpModalOpen, QR_COMMANDS } from "@/store/uiSignals";
 import { useSignals } from "@preact/signals-react/runtime";
+import { roomCode } from "@/store/partyConnection";
 
 export function HelpModal() {
   useSignals();
@@ -10,6 +11,9 @@ export function HelpModal() {
   };
   
   if (!helpModalOpen.value) return null;
+  
+  // Create scanner URL with room code
+  const scannerUrl = `${window.location.origin}/qr.html${roomCode.value ? `?room=${roomCode.value}` : ''}`;
   
   return (
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={closeModal}>
@@ -25,15 +29,15 @@ export function HelpModal() {
         
         {/* Mobile scanner information */}
         <div className="mb-4 p-3 bg-[#23232b] rounded-lg">
-          <h3 className="font-medium mb-2">Using a Phone as Scanner</h3>
           <div className="flex items-center gap-3">
             <div className="bg-white p-2 rounded-lg">
               <QRCode 
-                value="https://qr-quiz.henryzoo.com/qr"
-                className="w-[80px] h-[80px]"
+                value={scannerUrl}
+                size={160}
               />
             </div>
-            <div className="text-sm">
+            <div>
+              <h3 className="text-lg font-medium mb-2 text-[#e9a178]">Using a Phone as Scanner</h3>
               <p>Scan this QR code to open a dedicated scanner app on your phone.</p>
             </div>
           </div>
@@ -42,10 +46,10 @@ export function HelpModal() {
         {/* Close QR code */}
         <div className="flex flex-col items-center mb-4">
           <span className="text-sm mb-2">Scan to close help</span>
-          <div className="bg-white p-2 rounded-lg max-w-[120px]">
+          <div className="bg-white p-2 rounded-lg">
             <QRCode 
               value={QR_COMMANDS.CLOSE_HELP}
-              className="w-full aspect-square"
+              size={160}
             />
           </div>
         </div>

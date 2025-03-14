@@ -1,4 +1,8 @@
 export function getPartyKitHost(): string {
+  if (window.origin.endsWith("partykit.dev")) {
+    return window.location.host;
+  }
+
   return process.env.NODE_ENV === "development" 
     ? "localhost:1999" 
     : import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
@@ -14,10 +18,11 @@ export function createPartyKitUrl(path: string): string {
   return `${protocol}://${host}${path}`;
 }
 
-export function createPartyKitFetchUrl(path: string): string {
-  return createPartyKitUrl(`/parties/main/quiz${path}`);
+/**
+ * Creates a URL for fetching from the PartyKit server
+ * @param path The path within the quiz endpoint
+ * @param roomId The room ID to use (optional)
+ */
+export function createPartyKitFetchUrl(path: string, roomId: string): string {
+  return createPartyKitUrl(`/parties/main/${roomId.toUpperCase()}/${path}`);
 }
-
-export function createPartyKitQrCodeUrl(optionId: string): string {
-  return createPartyKitFetchUrl(`/${optionId}`);
-} 

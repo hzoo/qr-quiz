@@ -1,11 +1,14 @@
 import { signal } from "@preact/signals-react";
 import type { PartySocket } from "partysocket";
-import { getPartyKitHost, createPartyKitQrCodeUrl } from "../utils/url";
+import { getPartyKitHost } from "../utils/url";
 import { handleQrCommand } from "../utils/qrCommands";
 import { handleScan } from "../utils/handleScan";
 
 // Signal to track connection status
 export const connectionStatus = signal<"disconnected" | "connecting" | "connected">("disconnected");
+
+// Signal to store the current room code
+export const roomCode = signal<string>("quiz");
 
 // Store the PartySocket instance
 let socket: PartySocket | null = null;
@@ -20,8 +23,24 @@ export type MessageData = {
   success?: boolean;
 };
 
+// Generate a random 4-letter room code (uppercase letters only)
+function generateRoomCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ'; // Removed I and O to avoid confusion
+  let result = '';
+  for (let i = 0; i < 4; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 // Initialize the PartyKit connection
-export function initPartyConnection(roomId = "quiz") {
+export function initPartyConnection(userProvidedRoomId?: string) {
+  // Generate a random room code if not provided
+  const generatedRoomId = userProvidedRoomId || generateRoomCode();
+  
+  // Store the room code in the signal so it can be displayed in the UI
+  roomCode.value = generatedRoomId;
+  
   // Don't initialize if already connected
   if (socket) return;
 
@@ -32,21 +51,24 @@ export function initPartyConnection(roomId = "quiz") {
     // Create the PartySocket connection
     socket = new PartySocketModule.PartySocket({
       host: getPartyKitHost(),
-      room: roomId,
+      room: generatedRoomId,
     });
 
     // Handle connection open
     socket?.addEventListener("open", () => {
       connectionStatus.value = "connected";
+      console.log("connected to room", roomCode.value);
     });
 
     // Handle connection close
     socket?.addEventListener("close", () => {
       connectionStatus.value = "disconnected";
+      console.log("disconnected from room", roomCode.value);
     });
 
     // Handle messages from the server
     socket?.addEventListener("message", (event) => {
+      console.log("message from room", roomCode.value, event.data);
       try {
         const data: MessageData = JSON.parse(event.data);
         
@@ -70,11 +92,15 @@ export function disconnectParty() {
     socket.close();
     socket = null;
     connectionStatus.value = "disconnected";
+    // Clear the room code when disconnected
+    roomCode.value = "";
   }
 }
 
-// Get the URL for a QR code option
-// This converts a simple code to the appropriate PartyKit URL
-export function getQrCodeUrl(optionId: string): string {
-  return createPartyKitQrCodeUrl(optionId);
-} 
+// Join an existing room using a provided room code
+export function joinRoom(code: string) {
+  socket?.updateProperties({
+    room: code
+  });
+  socket?.reconnect();
+}

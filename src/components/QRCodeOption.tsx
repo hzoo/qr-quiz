@@ -19,7 +19,7 @@ function QRCodeOptionImpl({
   isSelected = false, 
   isCorrect = null,
   hideQrCode = false,
-  qrSize = 280 // Increased from 200 to make QR code larger
+  qrSize = 280
 }: QRCodeOptionProps) {
   useSignals();
   
@@ -79,7 +79,7 @@ function QRCodeOptionImpl({
         {/* QR code with option letter */}
         <div className="relative flex flex-col items-center">
           {statusIcon}
-          <div className={`bg-white p-3 rounded-xl shadow-lg border-4 ${borderColor} transition-colors`}>
+          <div className={`bg-white p-1 rounded-xl shadow-lg border-4 ${borderColor} transition-colors`}>
             <QRCode
               value={qrValue}
               size={qrSize}

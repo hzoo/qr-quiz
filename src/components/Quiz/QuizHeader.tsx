@@ -7,7 +7,7 @@ import {
 	QR_COMMANDS,
 	scannerReady,
 } from "@/store/uiSignals";
-import { connectionStatus } from "@/store/partyConnection";
+import { connectionStatus, roomCode } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
 import { quizState } from "@/store/quiz";
 
@@ -67,6 +67,18 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 								className={`w-2 h-2 rounded-full ${statusColors[connectionStatus.value]}`}
 							/>
 						</div>
+
+						{/* Room code display */}
+						{roomCode.value && (
+							<div className="ml-2 px-3 py-1 bg-[#3d3d47] rounded-md border border-[#4d4d57]">
+								<span className="text-xs font-semibold tracking-wider text-white opacity-80">
+									ROOM
+								</span>
+								<span className="ml-1 text-sm font-bold text-[#e9a178]">
+									{roomCode.value}
+								</span>
+							</div>
+						)}
 					</div>
 
 					{/* Question progress with game-like styling */}
@@ -84,10 +96,7 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 							</div>
 						</div>
 					</div>
-				</div>
 
-				{/* Right side - Score and scanner status */}
-				<div className="flex items-center gap-4">
 					{/* Score display */}
 					<div className="inline-flex rounded-full px-4 py-1 bg-[#23232b] border border-[#3d3d47] shadow-inner">
 						<div className="flex items-center gap-1">
@@ -99,7 +108,10 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 							</span>
 						</div>
 					</div>
+				</div>
 
+				{/* Right side - Score and scanner status */}
+				<div className="flex items-center gap-4">
 					{/* Scanner status indicator with toggle */}
 					<div className="flex items-center">
 						<div
@@ -139,33 +151,7 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 							</button>
 						</div>
 					</div>
-				</div>
-			</div>
 
-			{/* Bottom controls bar - more compact and optimized for projection */}
-			<div className="px-4 py-1 flex items-center justify-between bg-[#23232b]">
-				{/* Left side - Help QR code */}
-				<div className="flex items-center gap-3">
-					{/* Help QR code - more compact */}
-					<div className="group relative" onClick={openHelpModal}>
-						<div className="bg-white p-1 rounded-md flex items-center cursor-pointer hover:bg-gray-100 transition-colors">
-							<QRCode
-								value={QR_COMMANDS.INSTRUCTIONS}
-								size={32}
-								className="w-8 h-8"
-							/>
-							<span className="ml-1 text-[#1e1e24] text-xs font-medium px-1">
-								HELP
-							</span>
-						</div>
-						<div className="absolute left-0 top-full mt-1 text-xs bg-[#2b2b33] px-2 py-1 rounded-md border border-[#3d3d47] whitespace-nowrap z-10 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-							Scan or click for help
-						</div>
-					</div>
-				</div>
-
-				{/* Right-side controls */}
-				<div className="flex items-center gap-3">
 					{/* Hide QR Code Toggle */}
 					<button
 						onClick={toggleQrCodes}
@@ -188,6 +174,14 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 							{hideQrCodes.value ? "Show QR" : "Hide QR"}
 						</span>
 					</button>
+
+					<div className="group relative" onClick={openHelpModal}>
+						<div className="bg-white p-1 rounded-md flex items-center cursor-pointer hover:bg-gray-100 transition-colors">
+							<span className="ml-1 text-[#1e1e24] text-xs font-medium px-1">
+								HELP
+							</span>
+						</div>
+					</div>
 				</div>
 			</div>
 		</header>

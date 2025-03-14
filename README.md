@@ -23,7 +23,7 @@ A Q&A trivia application with QR code answers that uses Google's Gemini API to d
    - Get a key from [Google AI Studio](https://aistudio.google.com/app/apikey)
    - Copy `.env.example` to `.env` and add your API key:
      ```
-     VITE_GEMINI_API_KEY=your_api_key_here
+     GEMINI_API_KEY=your_api_key_here
      ```
 
 ## Development

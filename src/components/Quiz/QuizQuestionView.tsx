@@ -117,7 +117,7 @@ export function QuizQuestionView() {
                       onScan={handleOptionSelect}
                       isSelected={status?.isSelected || false}
                       isCorrect={status?.isCorrect}
-                      qrSize={160} // Slightly smaller QR size to prevent squishing
+                      qrSize={180}
                     />
                   </div>
                 )}

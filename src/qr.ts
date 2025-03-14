@@ -1,9 +1,14 @@
 // Import the QR scanner library
 // Note: We'll use npm package instead of unpkg in production
 import QrScanner from 'qr-scanner';
-import { getQrCodeUrl } from "./store/partyConnection";
-import { QR_COMMANDS } from "./store/uiSignals";
 import { getQrCommandMessage } from "./utils/qrCommands";
+import { createPartyKitFetchUrl, createPartyKitQrCodeUrl } from './utils/url';
+
+// Extract room code from URL query parameters
+const urlParams = new URLSearchParams(window.location.search);
+const currentRoomCode = urlParams.get('room') || 'QUIZ';
+
+console.log('QR Scanner using room:', currentRoomCode);
 
 // DOM Elements
 const video = document.getElementById('qr-video') as HTMLVideoElement;
@@ -14,7 +19,11 @@ const scanOverlay = document.getElementById('scan-overlay') as HTMLDivElement;
 const themeToggle = document.getElementById('theme-toggle') as HTMLButtonElement;
 const sunIcon = document.getElementById('sun-icon') as HTMLElement;
 const moonIcon = document.getElementById('moon-icon') as HTMLElement;
+const scannerTitle = document.getElementById('scanner-title') as HTMLHeadingElement;
 const body = document.body;
+
+// Update scanner title with the current room code
+scannerTitle.textContent = `Room: ${currentRoomCode}`;
 
 // Global state using regular variables since this is vanilla TS
 let qrData = '';
@@ -141,9 +150,7 @@ function convertCodeToUrl(code: string): string {
     cleanCode = cleanCode.toUpperCase();
   }
   
-  // Use the existing getQrCodeUrl function to construct the URL
-  // This will handle the proper formatting for PartyKit
-  return getQrCodeUrl(cleanCode);
+  return createPartyKitFetchUrl(cleanCode, currentRoomCode);
 }
 
 // Initialize QR scanner
@@ -215,15 +222,32 @@ submitBtn.addEventListener('click', () => {
     submitBtn.textContent = 'Loading...';
     disableSubmitButton();
     
-    fetch(constructedUrl)
+    // Show the URL being requested in the debug message
+    console.log('Attempting to fetch:', constructedUrl);
+    
+    fetch(constructedUrl, {
+      // Add CORS mode to explicitly handle CORS errors
+      mode: 'cors',
+      // Add credentials if needed (depends on your server setup)
+      credentials: 'same-origin'
+    })
       .then(response => response.text())
       .then(data => {
         updateResult("Submitted!");
         console.log('Fetch response:', data);
       })
       .catch(err => {
-        updateResult(`Error: ${err}`, true);
-        console.error('Fetch error:', err);
+        // More descriptive error message
+        let errorMessage = `Error: ${err.message}`;
+        
+        // Check if it's likely a CORS error
+        if (err.message.includes('access') || err.message.includes('CORS') || err.message.includes('failed')) {
+          errorMessage = "CORS Error: Can't connect to server";
+          console.error('CORS Error details:', err);
+          console.info('If you are using HTTPS with an HTTP endpoint, try using HTTP for both or enable CORS on your server.');
+        }
+        
+        updateResult(errorMessage, true);
       })
       .finally(() => {
         submitBtn.textContent = 'Submit';

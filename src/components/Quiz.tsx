@@ -8,14 +8,24 @@ import { QuizHeader } from "./Quiz/QuizHeader";
 import { QuizErrorView } from "./Quiz/QuizErrorView";
 import { QuizResultsView } from "./Quiz/QuizResultsView";
 import { QuizQuestionView } from "./Quiz/QuizQuestionView";
+import { QuizWelcomeView } from "./Quiz/QuizWelcomeView";
 import { HelpModal } from "./Quiz/HelpModal";
 import { BarcodeScannerView } from "./Quiz/BarcodeScannerView";
+import { signal } from "@preact/signals-react";
+
+// Signal to track if the quiz has been started
+export const quizStarted = signal<boolean>(false);
 
 export function Quiz() {
   useSignals();
 
   const { error, questions, currentQuestionIndex, showResult } = quizState.value;
   const currentQuestion = questions[currentQuestionIndex];
+
+  // If quiz hasn't started yet, show the welcome view
+  if (!quizStarted.value || questions.length === 0) {
+    return <QuizWelcomeView />;
+  }
 
   let content: ReactNode;
   const showHeaderAndHelp = currentQuestion && !error;
@@ -43,7 +53,7 @@ export function Quiz() {
         )}
       </div>
       
-      <div className="flex-1 min-h-0 overflow-hidden h-[calc(100vh-112px)]">
+      <div className="flex-1 min-h-0 overflow-hidden h-[calc(100vh-64px)]">
         {content}
       </div>
     </div>

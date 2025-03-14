@@ -32,14 +32,17 @@ export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
 
   async onStart() {
-    // Initialize question cache if it doesn't exist
-    const cache = await this.room.storage.get<QuizQuestion[]>("questionCache");
+    // Initialize question cache specific to this room if it doesn't exist
+    const roomId = this.room.id;
+    const cacheKey = `questionCache_${roomId}`;
+    
+    const cache = await this.room.storage.get<QuizQuestion[]>(cacheKey);
     if (!cache || cache.length < 20) {
       try {
         const questions = await generateQuestions(20);
-        await this.room.storage.put("questionCache", questions);
+        await this.room.storage.put(cacheKey, questions);
       } catch (error) {
-        console.error("Failed to initialize question cache:", error);
+        console.error(`Failed to initialize question cache for room ${roomId}:`, error);
       }
     }
   }
@@ -48,38 +51,43 @@ export default class Server implements Party.Server {
     console.log(
       `WebSocket Connected:
   id: ${conn.id}
+  room: ${this.room.id}
   url: ${new URL(ctx.request.url).pathname}`
     );
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    // log and broadcast messages to all connections in the room
-    console.log(`Message from ${sender.id}: ${message}`);
+    // Log and broadcast messages to all connections in the same room
+    console.log(`Message from ${sender.id} in room ${this.room.id}: ${message}`);
+    
+    // Only broadcast to connections in this room (though PartyKit already does this)
     this.room.broadcast(message);
   }
 
   // Handle quiz-related endpoints
   private async handleQuizEndpoint(url: URL) {
     const pathParts = url.pathname.split('/').filter(Boolean);
-    
+    const roomId = this.room.id; // Get the current room ID
+    const cacheKey = `questionCache_${roomId}`;
+
     // Handle question generation
-    if (url.pathname === '/parties/main/quiz/generate') {
+    if (url.pathname === `/parties/main/${roomId}/generate`) {
       try {
         const count = Number.parseInt(new URLSearchParams(url.search).get('count') || '4', 10);
         
-        // Try to get questions from cache first
-        const cache = await this.room.storage.get<QuizQuestion[]>("questionCache") || [];
+        // Try to get questions from room-specific cache first
+        const cache = await this.room.storage.get<QuizQuestion[]>(cacheKey) || [];
         
         if (cache.length >= count) {
           // Use cached questions and remove them from cache
           const questions = cache.slice(0, count);
           const remainingQuestions = cache.slice(count);
-          await this.room.storage.put("questionCache", remainingQuestions);
+          await this.room.storage.put(cacheKey, remainingQuestions);
           
           // Generate more questions in background if cache is getting low
           if (remainingQuestions.length < 10) {
             generateQuestions(20).then(async (newQuestions) => {
-              await this.room.storage.put("questionCache", [...remainingQuestions, ...newQuestions]);
+              await this.room.storage.put(cacheKey, [...remainingQuestions, ...newQuestions]);
             }).catch(console.error);
           }
           
@@ -92,12 +100,12 @@ export default class Server implements Party.Server {
         // Cache any extra questions for future use
         if (questions.length > count) {
           const extraQuestions = questions.slice(count);
-          await this.room.storage.put("questionCache", [...cache, ...extraQuestions]);
+          await this.room.storage.put(cacheKey, [...cache, ...extraQuestions]);
         }
         
         return jsonResponse({ success: true, questions: questions.slice(0, count) });
       } catch (error) {
-        console.error('Error generating questions:', error);
+        console.error(`Error generating questions for room ${roomId}:`, error);
         return jsonResponse({
           success: false,
           error: error instanceof Error ? error.message : 'Failed to generate questions'
@@ -106,34 +114,37 @@ export default class Server implements Party.Server {
     }
 
     // Handle option/command selection
-    if (pathParts.length >= 4 && pathParts[2] === 'quiz') {
+    if (pathParts.length >= 4 && pathParts[2] === roomId) {
       const option = pathParts[3];
       const isCommand = option.toLowerCase().startsWith('c:');
       
-      console.log(`Processing ${isCommand ? 'command' : 'option'}: ${option}`);
+      console.log(`Processing ${isCommand ? 'command' : 'option'} in room ${roomId}: ${option}`);
 
+      // Broadcast to all connections in this room
       this.room.broadcast(JSON.stringify({
         type: isCommand ? "command" : "selection",
         value: option,
-        timestamp: Date.now()
+        timestamp: Date.now(),
+        roomId: roomId
       }));
 
       return jsonResponse({
         success: true,
         message: isCommand ? `Command ${option} processed` : `Option ${option} selected`,
-        option
+        option,
+        roomId
       });
     }
 
     return jsonResponse({ 
       success: false,
-      message: "Invalid URL format" 
+      message: "Invalid URL format or room mismatch" 
     }, 400);
   }
 
   async onRequest(req: Party.Request) {
     const url = new URL(req.url);
-    console.log(`Received request: ${url.pathname}`);
+    console.log(`Received request for room ${this.room.id}: ${url.pathname}`);
     
     return this.handleQuizEndpoint(url);
   }

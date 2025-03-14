@@ -1,9 +1,7 @@
 import { QRCode } from "@/components/QRCode";
-import type { Question } from "@/types";
-import { getQrCodeUrl } from "@/store/partyConnection";
 import { QR_COMMANDS } from "@/store/uiSignals";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useComputed, useSignal } from "@preact/signals-react";
+import { useSignal } from "@preact/signals-react";
 import { quizState, restartQuiz } from "@/store/quiz";
 
 export function QuizResultsView() {
@@ -31,7 +29,7 @@ export function QuizResultsView() {
   };
   
   return (
-    <div className="h-[calc(100vh-112px)] w-full flex bg-[#1e1e24]">
+    <div className="h-[calc(100vh-64px)] w-full flex bg-[#1e1e24]">
       {/* Left side: Question Results */}
       <div className="w-2/3 flex flex-col min-h-0 p-1 overflow-hidden">
         <h2 className="text-xl font-bold p-2 text-[#e9a178]">Question Results</h2>
@@ -119,9 +117,8 @@ export function QuizResultsView() {
             onClick={handleReset}
           >
             <QRCode 
-              size={140}
+              size={230}
               value={isResetting.value ? "" : QR_COMMANDS.RESET} 
-              className="w-[140px]"
             />
           </div>
           <button 

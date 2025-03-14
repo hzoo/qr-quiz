@@ -4,11 +4,12 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "NODE_ENV=production vite",
     "build": "vite build",
     "preview": "vite preview",
     "partykit": "partykit dev",
     "deploy": "bun run build && partykit deploy --with-vars",
+    "deploy:preview": "bun run build && partykit deploy --with-vars --preview rooms",
     "deploy:cf": "bun run build && wrangler pages deploy dist --project-name qr-quiz"
   },
   "dependencies": {

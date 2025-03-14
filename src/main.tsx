@@ -13,7 +13,7 @@ if (process.env.NODE_ENV === "development") {
 	});
 }
 
-initPartyConnection();
+initPartyConnection("QUIZ");
 initQuiz();
 
 const elem = document.getElementById("root")!;
