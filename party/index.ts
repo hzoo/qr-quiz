@@ -66,12 +66,14 @@ export default class Server implements Party.Server {
 
   // Handle quiz-related endpoints
   private async handleQuizEndpoint(url: URL) {
-    const pathParts = url.pathname.split('/').filter(Boolean);
+    // Clean up the pathname by removing empty segments and double slashes
+    const cleanPath = url.pathname.replace(/\/+/g, '/');
+    const pathParts = cleanPath.split('/').filter(Boolean);
     const roomId = this.room.id; // Get the current room ID
     const cacheKey = `questionCache_${roomId}`;
 
-    // Handle question generation
-    if (url.pathname === `/parties/main/${roomId}/generate`) {
+    // Handle question generation - use cleaned path for comparison
+    if (cleanPath === `/parties/main/${roomId}/generate`) {
       try {
         const count = Number.parseInt(new URLSearchParams(url.search).get('count') || '4', 10);
         

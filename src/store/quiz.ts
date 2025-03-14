@@ -1,6 +1,7 @@
 import { signal, effect } from "@preact/signals-react";
 import type { Question, QuizState, Option } from "@/types";
 import { createPartyKitFetchUrl } from "../utils/url";
+import { roomCode } from "./partyConnection";
 
 // Default questions to show immediately
 const defaultQuestions: Question[] = [
@@ -135,7 +136,8 @@ async function ensurePoolHasEnoughQuestions() {
     const generateCount = Math.max(BATCH_GENERATE_SIZE, MIN_POOL_SIZE - questionPool.value.length);
     
     // Generate new questions
-    const response = await fetch(createPartyKitFetchUrl(`/generate?count=${generateCount}`));
+    const response = await fetch(createPartyKitFetchUrl(`/generate?count=${generateCount}`, roomCode.value));
+    console.log(response);
     if (!response.ok) {
       const error = await response.json();
       throw new Error(error.error || 'Failed to generate questions');
