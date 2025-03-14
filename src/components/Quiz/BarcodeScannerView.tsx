@@ -7,8 +7,7 @@ import { handleScan } from "@/utils/handleScan";
 export function BarcodeScannerView() {
   useSignals();
   
-  // Handle all scan events, including special commands
-  const handleScan = (value: string) => {
+  const onScan = (value: string) => {
     console.log("Scanned value:", value);
     
     // Check if it's a command first
@@ -24,7 +23,7 @@ export function BarcodeScannerView() {
   return (
     <div className="sr-only">
       <BarcodeScanner 
-        onScan={handleScan} 
+        onScan={onScan} 
         onStatusChange={(isReady) => scannerReady.value = isReady}
       />
     </div>

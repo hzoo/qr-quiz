@@ -2,7 +2,7 @@
 // Note: We'll use npm package instead of unpkg in production
 import QrScanner from 'qr-scanner';
 import { getQrCommandMessage } from "./utils/qrCommands";
-import { createPartyKitFetchUrl, createPartyKitQrCodeUrl } from './utils/url';
+import { createPartyKitFetchUrl } from './utils/url';
 
 // Extract room code from URL query parameters
 const urlParams = new URLSearchParams(window.location.search);

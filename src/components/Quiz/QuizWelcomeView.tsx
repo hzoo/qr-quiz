@@ -90,7 +90,8 @@ export function QuizWelcomeView() {
 					<h1 className="text-4xl font-bold text-[#e9a178]">Barcode Quiz</h1>
 					<BarcodeStripes className="h-10 w-14" />
 				</div>
-				<p className="text-xl text-gray-300">
+        <p className="text-gray-300">with henry zhu</p>
+				<p className="text-xl text-gray-300 pt-6">
 					control everything with QR codes
 				</p>
 			</div>
