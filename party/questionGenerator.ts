@@ -59,7 +59,6 @@ The response will be automatically formatted as JSON with the specified schema.`
           // temperature: 0.5,
           // topK: 40,
           // topP: 0.95,
-          maxOutputTokens: 1024,
           response_mime_type: "application/json",
           response_schema: {
             type: "ARRAY",
@@ -105,10 +104,12 @@ The response will be automatically formatted as JSON with the specified schema.`
   if (!content.parts || !content.parts[0]) {
     throw new Error("No content parts in API response");
   }
-  
+
   const text = content.parts[0].text.trim();
   let parsedData: Array<{text: string, options: Array<{text: string, isCorrect: boolean}>}>;
   
+  console.log(text);
+
   try {
     parsedData = JSON.parse(text);
   } catch (error) {

@@ -292,9 +292,16 @@ export function answerQuestion(answerId: string) {
 }
 
 export function resetQuizState() {
-  // Immediately reset to initial state
+  // Get questions from pool or use demo questions, just like initial state
+  const pool = loadQuestionPool();
+  const questions = pool.length >= 4 
+    ? getQuestionsFromPool(4) 
+    : defaultQuestions;
+
+  // Reset state but with questions
   quizState.value = {
     ...initialQuizState,
+    questions, // Always have questions available
   };
   
   // Clear the queue
@@ -325,8 +332,12 @@ export async function generateNewQuestions() {
 }
 
 export function restartQuiz() {
-  resetQuizState(); // Reset immediately
-  generateNewQuestions(); // Start generating questions in background
+  resetQuizState(); // Reset with pool/demo questions immediately
+  
+  // Only generate new questions if we had to use demo questions
+  if (quizState.value.questions.some(q => q.isDemo)) {
+    generateNewQuestions(); // Start generating questions in background
+  }
 }
 
 // Initialize the app with real questions instead of demo questions
