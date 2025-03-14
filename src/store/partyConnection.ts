@@ -1,5 +1,6 @@
 import { signal } from "@preact/signals-react";
 import type { PartySocket } from "partysocket";
+import { getPartyKitHost, createPartyKitQrCodeUrl } from "../utils/url";
 
 // Signal to track connection status
 export const connectionStatus = signal<"disconnected" | "connecting" | "connected">("disconnected");
@@ -46,7 +47,7 @@ export function initPartyConnection(roomId = "quiz") {
 
     // Create the PartySocket connection
     socket = new PartySocketModule.PartySocket({
-      host: import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999",
+      host: getPartyKitHost(),
       room: roomId,
     });
 
@@ -99,9 +100,5 @@ export function disconnectParty() {
 // Get the URL for a QR code option
 // This converts a simple code to the appropriate PartyKit URL
 export function getQrCodeUrl(optionId: string): string {
-  const host = import.meta.env.VITE_PARTYKIT_HOST || "localhost:1999";
-  const protocol = host.includes("localhost") ? "http" : "https";
-  
-  // Format: https://host/parties/main/roomId/optionId
-  return `${protocol}://${host}/parties/main/quiz/${optionId}`;
+  return createPartyKitQrCodeUrl(optionId);
 } 

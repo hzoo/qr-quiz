@@ -20,13 +20,21 @@
         </button>
       </div>
       <div class="p-4">
-        <div class="relative aspect-square w-full mb-4 theme-input rounded-lg overflow-hidden">
+        <div class="relative aspect-square w-full theme-input rounded-lg overflow-hidden">
           <video id="qr-video" class="absolute inset-0 w-full h-full object-cover"></video>
+          <!-- Overlay for scan feedback -->
+          <div id="scan-overlay" class="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0"></div>
+          <!-- Result overlay -->
+          <div id="result-container" class="absolute inset-x-0 bottom-0 p-4 transition-all duration-300">
+            <div id="result" class="w-full p-3 rounded-lg text-center font-medium transition-all duration-300 backdrop-blur-md bg-black/40 text-white text-lg opacity-0 transform translate-y-full"></div>
+          </div>
         </div>
-        <div id="result" class="p-3 theme-input rounded-lg mb-4 min-h-12 text-center transition-colors duration-300 font-medium">
-          Scan a QR code...
-        </div>
-        <button id="submit-btn" class="w-full py-2 px-4 bg-accent-500 hover:bg-accent-600 text-white font-medium rounded-lg transition-colors focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:outline-none">
+      </div>
+    </div>
+    <!-- Fixed submit button at bottom -->
+    <div class="fixed inset-x-0 bottom-0 p-4 flex justify-center">
+      <div class="w-full max-w-md">
+        <button id="submit-btn" class="w-full py-4 px-4 bg-accent-500 hover:bg-accent-600 text-white font-medium rounded-lg transition-all focus:ring-2 focus:ring-accent-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed transform hover:scale-[1.02] active:scale-[0.98] shadow-lg">
           Submit
         </button>
       </div>

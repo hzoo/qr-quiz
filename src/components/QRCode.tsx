@@ -19,7 +19,10 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
     if (qrRef.current) {
       try {
         qrRef.current.innerHTML = ''; // Clear previous QR code
-        const svgString = renderSVG(value);
+        const svgString = renderSVG(value, {
+          ecc: "Q",
+          // invert: true, // Invert the QR code
+        });
         qrRef.current.innerHTML = svgString;
         
         // Improve SVG sizing and scaling

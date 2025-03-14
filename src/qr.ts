@@ -6,8 +6,10 @@ import { QR_COMMANDS } from "./store/uiSignals";
 
 // DOM Elements
 const video = document.getElementById('qr-video') as HTMLVideoElement;
+const resultContainer = document.getElementById('result-container') as HTMLDivElement;
 const resultDiv = document.getElementById('result') as HTMLDivElement;
 const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement;
+const scanOverlay = document.getElementById('scan-overlay') as HTMLDivElement;
 const themeToggle = document.getElementById('theme-toggle') as HTMLButtonElement;
 const sunIcon = document.getElementById('sun-icon') as HTMLElement;
 const moonIcon = document.getElementById('moon-icon') as HTMLElement;
@@ -17,6 +19,7 @@ const body = document.body;
 let qrData = '';
 let constructedUrl = '';
 let wasLastUrlValid = false;
+let lastScannedCode = '';
 
 // Theme handling
 const THEME_KEY = 'qr-scanner-theme';
@@ -63,42 +66,59 @@ const toggleTheme = () => {
 // Initialize theme as soon as possible
 initTheme();
 
-// Add a container for scanner overlay effects
-const videoContainer = video.parentElement as HTMLDivElement;
-
 // Function to show scan feedback
-function showScanFeedback(success = true) {
-  if (!videoContainer) return;
+function showScanFeedback(success = true, isNewCode = false) {
+  if (!scanOverlay) return;
   
-  const successClass = 'bg-success-100';
-  const errorClass = 'bg-error-100';
+  // Different colors for new code vs existing code
+  const successClass = isNewCode ? 'bg-accent-500/30' : 'bg-success-500/20';
+  const errorClass = 'bg-error-500/20';
   
-  videoContainer.classList.add(success ? successClass : errorClass);
+  scanOverlay.className = `absolute inset-0 pointer-events-none transition-opacity duration-300 ${success ? successClass : errorClass}`;
+  scanOverlay.style.opacity = '1';
+  
   setTimeout(() => {
-    videoContainer.classList.remove(successClass, errorClass);
+    scanOverlay.style.opacity = '0';
   }, 500);
+  
+  // Show/hide result with slide and fade animations
+  if (success) {
+    resultDiv.classList.remove('opacity-0', 'translate-y-full');
+    // Add a flash animation to the result text for new codes
+    if (isNewCode) {
+      resultDiv.classList.add('animate-flash');
+      setTimeout(() => {
+        resultDiv.classList.remove('animate-flash');
+      }, 500);
+    }
+  } else {
+    resultDiv.classList.add('opacity-0', 'translate-y-full');
+  }
 }
 
 // Function to update result with appropriate styling
 function updateResult(text: string, isError = false) {
-  resultDiv.textContent = text;
+  // First hide the result with transform
+  resultDiv.classList.add('opacity-0', 'translate-y-full');
   
-  const baseClasses = ['p-3', 'rounded-lg', 'mb-4', 'min-h-12', 'text-center', 'transition-colors', 'duration-300', 'font-medium'];
-  const stateClasses = {
-    normal: ['theme-input', 'theme-text'],
-    success: ['bg-success-50', 'dark:bg-success-500/20', 'text-success-600', 'dark:text-success-500'],
-    error: ['bg-error-50', 'dark:bg-error-500/20', 'text-error-600', 'dark:text-error-500']
-  };
-  
-  // Remove all state classes
-  resultDiv.className = '';
-  
-  // Add base classes
-  baseClasses.forEach(cls => resultDiv.classList.add(cls));
-  
-  // Add state-specific classes
-  const state = isError ? 'error' : (text.includes('Scanned:') ? 'success' : 'normal');
-  stateClasses[state].forEach(cls => resultDiv.classList.add(cls));
+  // Use a very short timeout to ensure the transform is applied before showing
+  setTimeout(() => {
+    resultDiv.textContent = text;
+    
+    const baseClasses = 'w-full p-3 rounded-lg text-center font-medium transition-all duration-300 backdrop-blur-md text-white text-lg';
+    const stateClasses = {
+      success: 'bg-accent-500/70',
+      error: 'bg-error-500/70'
+    };
+    
+    // Set classes and show the result
+    resultDiv.className = `${baseClasses} ${stateClasses[isError ? 'error' : 'success']}`;
+    
+    // Remove the transform classes to trigger the animation
+    requestAnimationFrame(() => {
+      resultDiv.classList.remove('opacity-0', 'translate-y-full');
+    });
+  }, 300);
 }
 
 // Function to convert code to URL
@@ -134,18 +154,18 @@ function getFriendlyMessage(code: string): string {
   if (lowerCode.startsWith(QR_COMMANDS.PREFIX.toLowerCase())) {
     switch (lowerCode) {
       case QR_COMMANDS.RESET.toLowerCase():
-        return "Restarting quiz...";
+        return "Restart Quiz";
       case QR_COMMANDS.CLOSE_HELP.toLowerCase():
-        return "Closing help menu...";
+        return "Close Help Menu";
       case QR_COMMANDS.INSTRUCTIONS.toLowerCase():
-        return "Opening help menu...";
+        return "Open Help Menu";
       default:
         return `Unknown command: ${code}`;
     }
   }
   
   // For non-command codes (quiz answers), just show the option letter
-  return `Selected option ${code.toUpperCase()}`;
+  return `Pick ${code.toUpperCase()}`;
 }
 
 // Initialize QR scanner
@@ -159,25 +179,28 @@ const scanner = new QrScanner(
       // Convert to URL if needed
       const url = convertCodeToUrl(res.data);
       const isUrlValid = Boolean(url);
+      const isNewCode = qrData !== lastScannedCode;
       
-      // Only update UI if validity state changed
-      if (isUrlValid !== wasLastUrlValid) {
+      // Only update UI if validity state changed or if it's a new code
+      if (isUrlValid !== wasLastUrlValid || isNewCode) {
         if (isUrlValid) {
           enableSubmitButton();
-          showScanFeedback(true);
+          showScanFeedback(true, isNewCode);
         } else {
           disableSubmitButton();
           showScanFeedback(false);
         }
         wasLastUrlValid = isUrlValid;
+        lastScannedCode = qrData;
+        
+        // Only update result text when something changes
+        constructedUrl = url;
+        updateResult(isUrlValid ? getFriendlyMessage(res.data) : `Invalid code: ${res.data}`, !isUrlValid);
       }
-      
-      // Always update the URL and result text since they're important for UX
-      constructedUrl = url;
-      updateResult(isUrlValid ? getFriendlyMessage(res.data) : `Invalid code: ${res.data}`, !isUrlValid);
     }
   },
   {
+    maxScansPerSecond: 5,
     returnDetailedScanResult: true,
     preferredCamera: 'environment',
     highlightScanRegion: true,
@@ -188,18 +211,19 @@ const scanner = new QrScanner(
 // Button state functions
 function disableSubmitButton() {
   submitBtn.disabled = true;
-  submitBtn.classList.remove('bg-accent-500', 'hover:bg-accent-600');
-  submitBtn.classList.add('theme-disabled');
+  submitBtn.classList.remove('bg-accent-500', 'hover:bg-accent-600', 'hover:scale-[1.02]');
+  submitBtn.classList.add('bg-gray-500', 'cursor-not-allowed', 'opacity-50');
 }
 
 function enableSubmitButton() {
   submitBtn.disabled = false;
-  submitBtn.classList.remove('theme-disabled');
-  submitBtn.classList.add('bg-accent-500', 'hover:bg-accent-600');
+  submitBtn.classList.remove('bg-gray-500', 'cursor-not-allowed', 'opacity-50');
+  submitBtn.classList.add('bg-accent-500', 'hover:bg-accent-600', 'hover:scale-[1.02]');
 }
 
 // Set initial state of submit button
 disableSubmitButton();
+scanner.setInversionMode("both");
 
 // Start scanner
 scanner.start().catch(err => {
@@ -216,7 +240,7 @@ submitBtn.addEventListener('click', () => {
     fetch(constructedUrl)
       .then(response => response.text())
       .then(data => {
-        updateResult(`Option "${qrData}" selected!`);
+        updateResult("Submitted!");
         console.log('Fetch response:', data);
       })
       .catch(err => {
@@ -227,7 +251,10 @@ submitBtn.addEventListener('click', () => {
         submitBtn.textContent = 'Submit';
         qrData = '';
         constructedUrl = '';
+        lastScannedCode = '';
         disableSubmitButton();
+        // Hide the result container
+        resultDiv.classList.add('opacity-0', 'translate-y-full');
       });
   } else {
     updateResult('No valid QR code scanned yet', true);

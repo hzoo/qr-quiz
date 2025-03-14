@@ -7,15 +7,17 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "deploy": "bun run build && partykit deploy"
+    "partykit": "partykit dev",
+    "deploy": "bun run build && partykit deploy",
+    "deploy:cf": "bun run build && wrangler pages deploy dist --project-name qr-quiz"
   },
   "dependencies": {
     "@preact/signals-react": "^3.0.1",
     "partysocket": "1.0.3",
+    "preact": "^10.26.4",
     "qr-scanner": "^1.4.2",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-router-dom": "^7.2.0",
     "uqr": "^0.1.2"
   },
   "devDependencies": {
@@ -25,10 +27,11 @@
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.4",
     "bun-plugin-tailwind": "^0.0.15",
+    "partykit": "0.0.111",
     "react-scan": "^0.2.9",
     "tailwindcss": "^4.0.11",
     "typescript": "^5.8.2",
     "vite": "^6.2.0",
-    "partykit": "0.0.111"
+    "vite-plugin-mkcert": "^1.17.7"
   }
 }

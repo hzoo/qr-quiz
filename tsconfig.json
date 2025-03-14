@@ -29,7 +29,8 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"],
+      "@/party/*": ["party/*"]
     }
   },
-  "include": ["src/**/*", "scripts/*.ts"]
+  "include": ["src/**/*", "scripts/*.ts", "party/**/*"]
 }

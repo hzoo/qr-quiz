@@ -1,4 +1,20 @@
 import type * as Party from "partykit/server";
+import { generateQuestions } from "./questionGenerator";
+
+// Common headers for all responses
+const CORS_HEADERS = {
+  "Content-Type": "application/json",
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
+} as const;
+
+// Helper to create JSON responses
+const jsonResponse = (data: unknown, status = 200) => {
+  return new Response(JSON.stringify(data), {
+    headers: CORS_HEADERS,
+    status
+  });
+};
 
 export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
@@ -7,7 +23,6 @@ export default class Server implements Party.Server {
     console.log(
       `WebSocket Connected:
   id: ${conn.id}
-  room: ${this.room.id}
   url: ${new URL(ctx.request.url).pathname}`
     );
   }
@@ -18,62 +33,56 @@ export default class Server implements Party.Server {
     this.room.broadcast(message);
   }
 
-  // Handle HTTP requests from QR code scans
-  async onRequest(req: Party.Request) {
-    const url = new URL(req.url);
-    const pathname = url.pathname;
+  // Handle quiz-related endpoints
+  private async handleQuizEndpoint(url: URL) {
+    const pathParts = url.pathname.split('/').filter(Boolean);
     
-    console.log(`Received QR scan request: ${pathname}`);
-    
-    // Expected format from getQrCodeUrl: /parties/main/quiz/{optionId}
-    const pathParts = pathname.split('/').filter(Boolean);
-    
-    if (pathParts.length >= 4 && pathParts[0] === 'parties' && pathParts[1] === 'main' && pathParts[2] === 'quiz') {
-      const option = pathParts[3]; // The fourth part is the option ID
-      // Make command detection case-insensitive by converting to lowercase
+    // Handle question generation
+    if (url.pathname === '/parties/main/quiz/generate') {
+      try {
+        const count = Number.parseInt(new URLSearchParams(url.search).get('count') || '4', 10);
+        const questions = await generateQuestions(count);
+        return jsonResponse({ success: true, questions });
+      } catch (error) {
+        console.error('Error generating questions:', error);
+        return jsonResponse({
+          success: false,
+          error: error instanceof Error ? error.message : 'Failed to generate questions'
+        }, 500);
+      }
+    }
+
+    // Handle option/command selection
+    if (pathParts.length >= 4 && pathParts[2] === 'quiz') {
+      const option = pathParts[3];
       const isCommand = option.toLowerCase().startsWith('c:');
       
       console.log(`Processing ${isCommand ? 'command' : 'option'}: ${option}`);
 
-      // Broadcast the option/command to all connected clients with proper type
       this.room.broadcast(JSON.stringify({
         type: isCommand ? "command" : "selection",
         value: option,
         timestamp: Date.now()
       }));
 
-      // Get the user agent for debugging
-      // const userAgent = req.headers.get('user-agent') || 'unknown';
-      // console.log(`Request from: ${userAgent}`);
-
-      // Return success response with appropriate message
-      return new Response(JSON.stringify({
+      return jsonResponse({
         success: true,
         message: isCommand ? `Command ${option} processed` : `Option ${option} selected`,
-        option: option
-      }), {
-        headers: { 
-          "Content-Type": "application/json",
-          // Add CORS headers to support direct browser access
-          "Access-Control-Allow-Origin": "*",
-          "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
-        },
-        status: 200
+        option
       });
     }
 
-    console.log(`Invalid URL format: ${pathname}`);
-    return new Response(JSON.stringify({ 
+    return jsonResponse({ 
       success: false,
       message: "Invalid URL format" 
-    }), { 
-      headers: { 
-        "Content-Type": "application/json",
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, OPTIONS"
-      },
-      status: 400 
-    });
+    }, 400);
+  }
+
+  async onRequest(req: Party.Request) {
+    const url = new URL(req.url);
+    console.log(`Received request: ${url.pathname}`);
+    
+    return this.handleQuizEndpoint(url);
   }
 }
 
