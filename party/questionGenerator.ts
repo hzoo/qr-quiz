@@ -108,8 +108,6 @@ The response will be automatically formatted as JSON with the specified schema.`
   const text = content.parts[0].text.trim();
   let parsedData: Array<{text: string, options: Array<{text: string, isCorrect: boolean}>}>;
   
-  console.log(text);
-
   try {
     parsedData = JSON.parse(text);
   } catch (error) {
@@ -145,7 +143,6 @@ The response will be automatically formatted as JSON with the specified schema.`
           isCorrect: o.isCorrect,
         };
       }),
-      isDemo: false,
     };
   });
   
