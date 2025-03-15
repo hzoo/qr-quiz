@@ -51,21 +51,14 @@ function QRCodeImpl({ value, size = 150, label = null, className = "" }: QRCodeP
     }
   }, [value]);
 
-  // Apply size as style to the container
-  const containerStyle = {
-    width: size ? `${size}px` : '100%',
-    height: size ? `${size}px` : '100%',
-    maxWidth: '100%'
-  };
-
   return (
-    <div className={`flex items-center justify-center ${className}`} style={containerStyle}>
+    <div className={`flex items-center justify-center ${className}`}>
       {error ? (
         <div className="p-3 bg-red-100 text-red-800 rounded-lg">
           {error}
         </div>
       ) : (
-        <div ref={qrRef} className="w-full h-full flex-1" />
+        <div ref={qrRef}/>
       )}
     </div>
   );
