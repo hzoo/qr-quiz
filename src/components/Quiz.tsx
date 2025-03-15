@@ -49,10 +49,7 @@ export function Quiz() {
           </>
         )}
       </div>
-      
-      <div className="flex-1 min-h-0 overflow-hidden h-[calc(100vh-62px)]">
-        {content}
-      </div>
+      {content}
     </div>
   );
 }

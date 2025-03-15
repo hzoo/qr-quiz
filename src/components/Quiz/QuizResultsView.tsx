@@ -29,7 +29,7 @@ export function QuizResultsView() {
   };
   
   return (
-    <div className="h-[calc(100vh-62px)] w-full flex bg-[#1e1e24]">
+    <div className="h-[calc(100vh-theme(spacing.16))] w-full flex bg-[#1e1e24]">
       {/* Left side: Question Results */}
       <div className="w-2/3 flex flex-col min-h-0 p-1 overflow-hidden">
         <h2 className="text-xl font-bold p-2 text-[#e9a178]">Question Results</h2>
