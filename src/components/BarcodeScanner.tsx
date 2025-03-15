@@ -126,5 +126,4 @@ function areEqual(prevProps: BarcodeScannerProps, nextProps: BarcodeScannerProps
   );
 }
 
-// Export the memoized version of the component
 export const BarcodeScanner = memo(BarcodeScannerImpl, areEqual); 

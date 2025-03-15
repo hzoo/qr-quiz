@@ -10,7 +10,7 @@ import {
 } from "@/store/partyConnection";
 import { QR_COMMANDS, scannerEnabled } from "@/store/uiSignals";
 import { initQuiz } from "@/store/quiz";
-import { quizStarted } from "@/components/Quiz";
+import { quizStarted } from "@/store/quiz";
 
 export function QuizWelcomeView() {
 	useSignals();

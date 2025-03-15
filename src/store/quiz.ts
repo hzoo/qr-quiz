@@ -3,6 +3,11 @@ import type { Question, QuizState, Option } from "@/types";
 import { createPartyKitFetchUrl } from "../utils/url";
 import { roomCode } from "./partyConnection";
 
+// Signal to track answer transition animation
+export const isAnswerTransitioning = signal(false);
+// Signal to track if the quiz has been started
+export const quizStarted = signal<boolean>(false);
+
 // Default questions to show immediately
 const defaultQuestions: Question[] = [
   {
@@ -242,6 +247,9 @@ export function answerQuestion(answerId: string) {
     userAnswers: newAnswers
   };
   
+  // Start transition animation
+  isAnswerTransitioning.value = true;
+  
   // Move to next question after a delay
   setTimeout(() => {
     const nextIndex = currentState.currentQuestionIndex + 1;
@@ -266,6 +274,8 @@ export function answerQuestion(answerId: string) {
         ensurePoolHasEnoughQuestions();
       }
     }
+    // End transition animation
+    isAnswerTransitioning.value = false;
   }, 1000);
 }
 

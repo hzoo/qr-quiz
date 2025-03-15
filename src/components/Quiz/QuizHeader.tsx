@@ -9,7 +9,7 @@ import {
 } from "@/store/uiSignals";
 import { connectionStatus, roomCode } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
-import { quizState } from "@/store/quiz";
+import { quizState, isAnswerTransitioning } from "@/store/quiz";
 
 type QuizHeaderProps = {
 	title: string;
@@ -54,6 +54,24 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 
 	return (
 		<header className="bg-[#2b2b33] border-b-2 border-[#3d3d47] relative z-10">
+			{/* Progress bar */}
+			<div className="absolute bottom-0 left-0 w-full h-1 bg-[#3d3d47] overflow-hidden">
+				{isAnswerTransitioning.value && (
+					<div 
+						className="h-full bg-[#e9a178] transition-transform duration-1000 ease-linear origin-left"
+						style={{ animation: 'progress 1s ease-in-out' }}
+					/>
+				)}
+			</div>
+
+			{/* Add keyframes for the progress animation */}
+			<style>{`
+				@keyframes progress {
+					from { transform: scaleX(0); }
+					to { transform: scaleX(1); }
+				}
+			`}</style>
+
 			{/* Main header with game info */}
 			<div className="px-4 py-3 flex items-center justify-between">
 				{/* Left side - Game title and progress */}

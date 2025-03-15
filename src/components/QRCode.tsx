@@ -74,5 +74,4 @@ function areEqual(prevProps: QRCodeProps, nextProps: QRCodeProps) {
   );
 }
 
-// Export memoized component
 export const QRCode = memo(QRCodeImpl, areEqual); 
