@@ -20,6 +20,13 @@ interface QuizQuestion {
   isDemo?: boolean;
 }
 
+// Cache configuration
+const CACHE_CONFIG = {
+  INITIAL_SIZE: 20,    // Initial number of questions to generate
+  LOW_THRESHOLD: 60,   // Threshold to trigger background generation
+  BATCH_SIZE: 20       // Number of questions to generate in each batch
+};
+
 // Helper to create JSON responses
 const jsonResponse = (data: unknown, status = 200) => {
   return new Response(JSON.stringify(data), {
@@ -37,9 +44,9 @@ export default class Server implements Party.Server {
     const cacheKey = `questionCache_${roomId}`;
     
     const cache = await this.room.storage.get<QuizQuestion[]>(cacheKey);
-    if (!cache || cache.length < 20) {
+    if (!cache || cache.length < CACHE_CONFIG.INITIAL_SIZE) {
       try {
-        const questions = await generateQuestions(20);
+        const questions = await generateQuestions(CACHE_CONFIG.INITIAL_SIZE);
         await this.room.storage.put(cacheKey, questions);
       } catch (error) {
         console.error(`Failed to initialize question cache for room ${roomId}:`, error);
@@ -87,9 +94,10 @@ export default class Server implements Party.Server {
           await this.room.storage.put(cacheKey, remainingQuestions);
           
           // Generate more questions in background if cache is getting low
-          if (remainingQuestions.length < 10) {
-            generateQuestions(20).then(async (newQuestions) => {
+          if (remainingQuestions.length < CACHE_CONFIG.LOW_THRESHOLD) {
+            generateQuestions(CACHE_CONFIG.BATCH_SIZE).then(async (newQuestions) => {
               await this.room.storage.put(cacheKey, [...remainingQuestions, ...newQuestions]);
+              console.log(`Replenished cache for room ${roomId}, new cache size: ${remainingQuestions.length + newQuestions.length}`);
             }).catch(console.error);
           }
           
@@ -97,12 +105,13 @@ export default class Server implements Party.Server {
         }
         
         // If not enough cached questions, generate new ones
-        const questions = await generateQuestions(count);
+        const questions = await generateQuestions(Math.max(count, CACHE_CONFIG.BATCH_SIZE));
         
         // Cache any extra questions for future use
         if (questions.length > count) {
           const extraQuestions = questions.slice(count);
           await this.room.storage.put(cacheKey, [...cache, ...extraQuestions]);
+          console.log(`Generated new questions for room ${roomId}, cache size: ${cache.length + extraQuestions.length}`);
         }
         
         return jsonResponse({ success: true, questions: questions.slice(0, count) });
