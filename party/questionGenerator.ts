@@ -1,40 +1,61 @@
 import type { Question } from "@/types";
 
 const categories = [
-  "Theology (big questions about existence, religious insights, Christianity, Desert Fathers, OT/NT)",
-  "Concepts, ideas, and history (surprising facts about history, concepts, and ideas)",
-  "Philosophy (phenomenological, existential, the transcendentals, beauty)",
-  "Music theory (surprising facts about music, composers, and history)",
-  "Photography, film, and television (surprising facts about photography, film, and television)",
-  "Internet and social media (surprising facts about the internet, social media, and online culture)",
-  "Programming and computer science (surprising facts about programming, computer science, and technology)",
-  "Art and literature (surprising facts about masterpieces, writers' lives)",
-  "Science (cutting-edge discoveries, counterintuitive findings)",
-  "Technology (inventions that changed history, unusual tech facts)",
+  "Systems Thinking & Design (patterns that connect, wholeness, living structures, design principles)",
+  "Urban Ecology & Community (convivial tools, human scale, vernacular knowledge, neighborhood wisdom)",
+  "Theology & Spirituality (existential questions, religious insights, contemplative traditions, mysticism)",
+  "Cultural Anthropology (surprising cultural practices, rituals, social phenomena across civilizations)",
+  "Philosophy & Ethics (existential insights, moral dilemmas, thought experiments, paradoxes)",
+  "History's Turning Points (overlooked moments that changed everything, historical ironies)",
+  "Music & Sound Theory (surprising acoustics, composition techniques, musical innovations)",
+  "Visual Arts & Design (unexpected influences, techniques that revolutionized perception)",
+  "Digital Culture (internet history, meme evolution, virtual communities, digital anthropology)",
+  "Programming Philosophy (conceptual breakthroughs, elegant solutions, computational thinking)",
+  "Literary Secrets (hidden meanings, author lives, unexpected connections between works)",
+  "Scientific Paradigm Shifts (discoveries that changed worldviews, counterintuitive findings)",
+  "Technology & Society (inventions that transformed human behavior, ethical intersections)",
+  "Cognitive Science (how humans think, perceive, decide, and create meaning)",
+  "Cross-Disciplinary Connections (where art meets science, theology meets technology, etc)",
+  "Ancient Knowledge & Modern Discoveries (old wisdom validated by new research)",
+  "Information Encoding & Semiotics (symbols, signs, language, visual communication)",
+  // "QR History & Evolution (predecessors, competitors, technical origins, cultural adoption)",
+  "Protocol Design & Technical Elegance (simple solutions to complex problems, elegant encoding)",
+  "Visual Data & Information Art (data visualization, aesthetic encoding, visual communication)",
+  "Cross-Disciplinary Connections (where art meets technology, community meets code, design meets ethics)",
 ];
 
 export async function generateQuestions(count = 4): Promise<Question[]> {
-  const batchSize = Math.max(6, count); // Generate a few extra for the pool
+  const batchSize = Math.max(6, count);
   
-  const prompt = `Create ${batchSize} genuinely interesting and thought-provoking trivia questions that will surprise and engage users.
+  const prompt = `Create ${batchSize} intellectually stimulating trivia questions that blend curiosity and insight.
 
-Make questions fun, unusual, and thought-provoking - AVOID basic facts that everyone knows.
-IMPORTANT: ONLY create questions from the ACTIVE categories below (ignore any commented categories):
+ACTIVE CATEGORIES:
 ${categories.filter(cat => !cat.startsWith('//'))
     .map(category => `- ${category.trim()}`)
     .join('\n')}
 
-Each question MUST be:
-1. Novel and surprising - something most people wouldn't know
-2. Intellectually engaging - makes people think "wow, that's interesting!"
-3. Well-structured with 4 plausible options (only ONE correct)
-4. AVOID answer giveaways in the question text:
-   - Don't use gendered pronouns (he/she) if the answer is about a person
-   - Don't include the answer word in the question
-   - Don't use obvious hints that eliminate options
-   - Make all options equally plausible at first glance
+QUESTION GUIDELINES:
+1. Include questions across the spectrum from accessible to challenging, with most questions being moderately challenging
+2. Create "aha moment" questions where the answer reveals an unexpected connection or insight
+3. Bridge 2+ categories in at least half of the questions (e.g., theology meets art)
+4. Include questions with subtle historical ironies, paradoxes, or pattern-breaking examples
+5. Include some questions related to visual encoding, information display, and the interaction between technology and society (just a few because the trivia is being done at a QR show but just as a nod, not a lot)
+6. Aim for timeless questions rather than trending topics (though very recent stuff is fine)
 
-The response will be automatically formatted as JSON with the specified schema.`;
+BALANCE:
+- Include a mix of questions: 20% accessible, 60% moderately challenging, 20% specialist-level
+- Some questions can be playful or surprising while others more intellectually rigorous
+- Balance historical knowledge with conceptual understanding questions
+- Include both technological details and human/societal impact questions
+
+FOR EACH QUESTION:
+- Make sure it passes the "that's interesting!" test - would someone want to share this fact?
+- Include exactly 4 options with only ONE correct answer
+- Craft wrong answers that are plausible but clearly incorrect to someone who knows the topic
+- Don't include obvious hints or gendered pronouns that give away the answer
+- For questions about QR codes/encoding, consider how they might relate to broader ideas about communication, design, and community (just as a nod to the theme, not a lot of questions)
+
+The response must be valid JSON with the specified schema.`;
 
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
