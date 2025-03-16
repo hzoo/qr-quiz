@@ -1,6 +1,9 @@
 import { isResetting, QR_COMMANDS } from "@/store/uiSignals";
 import { helpModalOpen } from "@/store/uiSignals";
 import { restartQuiz } from "@/store/quiz";
+import { initQuiz, quizStarted } from "@/store/quiz";
+import { scannerEnabled } from "@/store/uiSignals";
+import { connectionStatus } from "@/store/partyConnection";
 
 type QrCommand = {
   id: string;
@@ -35,6 +38,20 @@ const QR_COMMAND_MAP: Record<string, QrCommand> = {
     handler: () => {
       console.log("Instructions command detected");
       helpModalOpen.value = true;
+    }
+  },
+  [QR_COMMANDS.START_QUIZ.toLowerCase()]: {
+    id: QR_COMMANDS.START_QUIZ,
+    message: "Start Quiz",
+    handler: () => {
+      console.log("Start quiz command detected");
+      if (connectionStatus.value === "connected") {
+        scannerEnabled.value = true;
+        initQuiz();
+        quizStarted.value = true;
+      } else {
+        console.log("Cannot start quiz: not connected");
+      }
     }
   }
 };

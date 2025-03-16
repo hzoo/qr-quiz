@@ -93,7 +93,7 @@ export function QuizWelcomeView() {
 			<div className="mb-8 text-center">
 				<div className="flex items-center justify-center gap-2 mb-2">
 					<BarcodeStripes className="h-10 w-14" />
-					<h1 className="text-6xl font-bold text-[#e9a178]">Barcode Quiz</h1>
+					<h1 className="text-7xl font-bold text-[#e9a178]">BARCODE QUIZ</h1>
 					<BarcodeStripes className="h-10 w-14" />
 				</div>
 				<p className="text-gray-300">with henry zhu</p>
@@ -119,7 +119,7 @@ export function QuizWelcomeView() {
 					</div>
 				</div>
 
-				{roomCode.value && (
+				{/* {roomCode.value && (
 					<div className="px-4 py-2 bg-[#2b2b33] border border-[#3d3d47] rounded-lg">
 						<span className="text-sm font-semibold text-gray-300">
 							ROOM CODE
@@ -128,7 +128,7 @@ export function QuizWelcomeView() {
 							{roomCode.value}
 						</span>
 					</div>
-				)}
+				)} */}
 			</div>
 
 			{/* Main content grid: Instructions + Room joining */}
@@ -269,17 +269,30 @@ export function QuizWelcomeView() {
 							Ready to Begin?
 						</h2>
 						<p className="text-gray-300 text-center mb-8">
-							Once connected, click the button below to start the quiz!
+							Once connected, click the button below or scan the QR code to start the quiz!
 						</p>
-						<button
-							onClick={handleStartQuiz}
-							disabled={connectionStatus.value !== "connected"}
-							className="w-full max-w-md bg-[#e9a178] hover:bg-[#d8906c] text-[#1e1e24] font-bold px-4 py-3 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
-						>
-							{connectionStatus.value === "connected"
-								? "Start Quiz"
-								: "Connecting..."}
-						</button>
+						<div className="flex flex-col items-center gap-6 w-full">
+							<button
+								onClick={handleStartQuiz}
+								disabled={connectionStatus.value !== "connected"}
+								className="w-full max-w-md bg-[#e9a178] hover:bg-[#d8906c] text-[#1e1e24] font-bold px-4 py-3 rounded-md disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+							>
+								{connectionStatus.value === "connected"
+									? "Start Quiz"
+									: "Connecting..."}
+							</button>
+
+							{/* Start Quiz QR Code */}
+							{connectionStatus.value === "connected" && (
+								<div className="mt-4 flex flex-col items-center">
+									<p className="text-gray-300 mb-3">Or scan this QR code to start:</p>
+									<QRCode
+										value={QR_COMMANDS.START_QUIZ}
+										size={150}
+									/>
+								</div>
+							)}
+						</div>
 					</div>
 				</div>
 			</div>

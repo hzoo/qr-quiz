@@ -10,7 +10,6 @@ import { QuizResultsView } from "./Quiz/QuizResultsView";
 import { QuizQuestionView } from "./Quiz/QuizQuestionView";
 import { QuizWelcomeView } from "./Quiz/QuizWelcomeView";
 import { HelpModal } from "./Quiz/HelpModal";
-import { BarcodeScannerView } from "./Quiz/BarcodeScannerView";
 import { quizStarted } from "@/store/quiz";
 
 export function Quiz() {
@@ -38,8 +37,6 @@ export function Quiz() {
   return (
     <div className="flex flex-col h-screen min-h-0 bg-[#1e1e24] text-[#ebebf0]">
       <div className="flex-none">
-        <BarcodeScannerView/>
-        
         {showHeaderAndHelp && (
           <>
             <HelpModal />

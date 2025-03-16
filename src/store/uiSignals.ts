@@ -5,7 +5,8 @@ export const QR_COMMANDS = {
   PREFIX: "c:",
   RESET: "c:r",
   CLOSE_HELP: "c:c",
-  INSTRUCTIONS: "c:i"
+  INSTRUCTIONS: "c:i",
+  START_QUIZ: "c:s"
 };
 
 // Global UI signals
