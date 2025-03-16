@@ -28,7 +28,7 @@ const categories = [
   "Artificial Intelligence (LLMs, Base Models, AI history, ethical considerations, future scenarios, creative applications, vibe coding)",
 ];
 
-export async function generateQuestions(count = 4): Promise<Question[]> {
+export async function generateQuestions(count: number): Promise<Question[]> {
   const batchSize = Math.max(6, count);
   
   const prompt = `Create ${batchSize} intellectually stimulating trivia questions that blend curiosity and insight for an art/tech audience at the Recurse Center in NYC.
@@ -44,12 +44,12 @@ QUESTION GUIDELINES:
 3. Bridge 2+ categories in some of the questions (e.g., NYC tech scene meets art history, theology meets music)
 4. Include questions with subtle historical ironies, paradoxes, or pattern-breaking examples
 5. Include a smidge of questions related to visual encoding, QR codes, and information display as a nod to the exhibition theme
-6. Aim for timeless questions rather than trending topics (though recent developments in tech/art are welcome)
+6. Aim for timeless questions rather than trending topics (though recent developments are welcome)
 7. Include questions that would resonate with the local NYC tech/art community (Recurse Center, School of Poetic Computation, Hex House, ITP, Wonderville, Fractal Tech, people involved, events, etc)
-8. For each batch, ensure questions span at least 8 different categories to maintain diversity
+8. For each batch, ensure questions span different categories to maintain diversity
 
 BALANCE:
-- For general knowledge questions: 30% accessible, 50% moderately challenging, 20% specialist-level
+- For general knowledge questions: 40% accessible, 50% moderately challenging, 10% specialist-level
 - For technical/programming questions: 10% accessible, 40% moderately challenging, 50% specialist-level (both theoretical computer science and practical engineering questions)
 - Some questions can be playful or surprising while others more intellectually rigorous
 - Balance historical knowledge with conceptual understanding questions
@@ -84,9 +84,9 @@ The response must be valid JSON with the specified schema.`;
           },
         ],
         generationConfig: {
-          temperature: 0.7,
-          topK: 40,
-          topP: 0.95,
+          // temperature: 0.7,
+          // topK: 40,
+          // topP: 0.95,
           response_mime_type: "application/json",
           response_schema: {
             type: "ARRAY",
