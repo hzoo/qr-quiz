@@ -20,119 +20,129 @@ export function QuizResultsView() {
   
   const handleReset = () => {
     isResetting.value = true;
-    // Reset immediately
-    restartQuiz();
     // Just show reset animation briefly
     setTimeout(() => {
+      // Reset immediately
+      restartQuiz();
       isResetting.value = false;
-    }, 500);
+    }, 350);
+  };
+  
+  // Get grid classes based on question count
+  const getGridClasses = () => {
+    const count = questions.length;
+    if (count <= 4) return "grid-cols-2 grid-rows-2 gap-3"; 
+    if (count <= 8) return "grid-cols-4 grid-rows-2 gap-2";
+    if (count <= 12) return "grid-cols-4 grid-rows-3 gap-2";
+    return "grid-cols-4 gap-2"; // For 16 questions, don't force grid-rows to allow scrolling
+  };
+  
+  // Get question text size based on question count
+  const getQuestionTextSize = () => {
+    const count = questions.length;
+    if (count <= 4) return "text-4xl";
+    if (count <= 8) return "text-3xl";
+    if (count <= 12) return "text-2xl";
+    return "text-xl";
+  };
+  
+  // Get answer text size based on question count
+  const getAnswerTextSize = () => {
+    const count = questions.length;
+    if (count <= 4) return "text-xl";
+    if (count <= 8) return "text-lg";
+    return "text-base";
   };
   
   return (
-    <div className="h-[calc(100vh-theme(spacing.16))] w-full flex bg-[#1e1e24]">
-      {/* Left side: Question Results */}
-      <div className="w-2/3 flex flex-col min-h-0 p-1 overflow-hidden">
-        <h2 className="text-xl font-bold p-2 text-[#e9a178]">Question Results</h2>
-        <div className="overflow-auto flex-1 grid grid-cols-1 gap-1 p-1">
-          {questions.map((q, idx) => {
-            const userOption = q.options.find(o => o.id === userAnswers[q.id]);
-            const correctOption = q.options.find(o => o.isCorrect);
-            const isCorrect = userOption?.isCorrect === true;
-            
-            const bgColor = !userOption ? "bg-[#23232b]" : isCorrect ? "bg-emerald-900/20" : "bg-red-900/20";
-            const borderColor = !userOption ? "border-[#3d3d47]" : isCorrect ? "border-emerald-500/50" : "border-red-500/50";
-            
-            return (
-              <div key={q.id} className="bg-[#2b2b33] p-2 rounded-md shadow-md border border-[#3d3d47]">
-                <div className={`p-2.5 rounded-md ${bgColor} border ${borderColor} transition-colors flex`}>
-                  <div className="flex items-start gap-2 w-full">
-                    {/* Question number badge */}
-                    <div className="bg-[#3d3d47] w-7 h-7 rounded-full flex items-center justify-center text-base font-bold shrink-0">
-                      {idx + 1}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0 flex flex-col">
-                      {/* Question text */}
-                      <p className="font-medium text-2xl mb-2 line-clamp-2 flex-1">{q.text}</p>
-                      
-                      {/* User answer */}
-                      <div className="flex flex-col text-base w-full gap-1">
-                        <div className="flex items-center gap-1.5 w-full">
-                          <span className="opacity-75 shrink-0 text-sm">Your:</span>
-                          {userOption ? (
-                            <span className={`font-medium ${isCorrect ? "text-emerald-400" : "text-red-400"} flex items-center gap-1 truncate flex-1`}>
-                              {isCorrect ? "✓" : "✗"} {userOption.text}
-                            </span>
-                          ) : (
-                            <span className="text-red-400 font-medium flex items-center gap-1 flex-1">
-                              Not answered
-                            </span>
-                          )}
-                        </div>
-                        
-                        {/* Correct answer - only show if user got it wrong or didn't answer */}
-                        {(!userOption || !userOption.isCorrect) && (
-                          <div className="flex items-center gap-1.5 w-full">
-                            <span className="opacity-75 shrink-0 text-sm">Correct:</span>
-                            <span className="text-emerald-400 font-medium truncate text-base flex-1">{correctOption?.text}</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
+    <div className="h-[calc(100vh-theme(spacing.16))] w-full flex flex-col bg-[#1e1e24] p-4">
+      {/* Question Grid - Make it scrollable when many questions */}
+      <div className={`grid ${getGridClasses()} overflow-y-auto max-h-[calc(100vh-theme(spacing.56))]`}>
+        {questions.map((q, idx) => {
+          const userOption = q.options.find(o => o.id === userAnswers[q.id]);
+          const correctOption = q.options.find(o => o.isCorrect);
+          const isCorrect = userOption?.isCorrect === true;
+          
+          // Match colors from screenshot
+          const bgColor = "bg-[#2b2b33]";
+          const borderColor = isCorrect 
+            ? "border-emerald-500/50" 
+            : (userOption && !isCorrect) 
+              ? "border-red-500/50" 
+              : "border-[#3d3d47]";
+          
+          return (
+            <div key={q.id} className={`${bgColor} rounded-md border ${borderColor} shadow-md overflow-hidden`}>
+              {/* Question number and text */}
+              <div className="flex items-start p-2">
+                <div className="bg-[#3d3d47] w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shrink-0 mr-2">
+                  {idx + 1}
                 </div>
+                <p className={`font-medium ${getQuestionTextSize()}`}>{q.text}</p>
               </div>
-            );
-          })}
-        </div>
+              
+              {/* Answers */}
+              <div className="px-2 pb-2">
+                {/* User's incorrect answer */}
+                {userOption && !isCorrect && (
+                  <div className="flex items-center mb-1">
+                    <span className="text-red-400 mr-1">✗</span>
+                    <span className={`text-red-400 ${getAnswerTextSize()}`}>{userOption.text}</span>
+                  </div>
+                )}
+                
+                {/* User's correct answer */}
+                {userOption && isCorrect && (
+                  <div className="flex items-center mb-1">
+                    <span className="text-emerald-400 mr-1">✓</span>
+                    <span className={`text-emerald-400 ${getAnswerTextSize()}`}>{userOption.text}</span>
+                  </div>
+                )}
+                
+                {/* Not answered */}
+                {!userOption && (
+                  <div className={`mb-1 text-red-400 ${getAnswerTextSize()}`}>Not answered</div>
+                )}
+                
+                {/* Correct answer if user was wrong or didn't answer */}
+                {(!userOption || !isCorrect) && (
+                  <div className="flex items-center">
+                    <span className="text-emerald-400 mr-1">✓</span>
+                    <span className={`text-emerald-400 ${getAnswerTextSize()}`}>{correctOption?.text}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       
-      {/* Right side: Score and QR Code */}
-      <div className="w-1/3 flex flex-col p-1 gap-4">
-        {/* Score display */}
-        <div className="bg-[#2b2b33] p-4 rounded-md shadow-md border border-[#3d3d47]">
-          <h2 className="text-xl font-bold mb-3 text-center">Final Score</h2>
-          <div className="flex justify-center items-baseline gap-2 mb-2">
-            <span className="text-5xl font-bold text-[#e9a178]">{correctAnswersCount}</span>
-            <span className="text-xl text-gray-400">/</span>
-            <span className="text-3xl font-bold">{questions.length}</span>
-          </div>
-          <p className="text-center text-xl text-gray-300">
-            {correctAnswersCount === questions.length 
-              ? "Perfect! 🎉" 
-              : correctAnswersCount > questions.length / 2 
-                ? "Well done! 👍" 
-                : "Try again! 💪"}
-          </p>
+      {/* Play Again Button and QR Code */}
+      <div className="mt-4 flex justify-center flex-col items-center gap-2">
+        <div 
+          onClick={handleReset}
+          className={`bg-white rounded-md transition-all duration-500 border-4 ${
+            isResetting.value 
+              ? "border-blue-400 shadow-lg shadow-blue-900/20" 
+              : "border-white cursor-pointer"
+          }`}
+        >
+          <QRCode 
+            size={100}
+            value={isResetting.value ? "" : QR_COMMANDS.RESET} 
+          />
         </div>
-
-        {/* QR code for reset */}
-        <div className="bg-[#2b2b33] p-4 rounded-md shadow-md border border-[#3d3d47] flex flex-col items-center">
-          <div 
-            className={`bg-white p-3 rounded-md transition-all duration-500 mb-4 border-4 ${
-              isResetting.value 
-                ? "border-blue-400 scale-105 shadow-lg shadow-blue-900/20 pointer-events-none cursor-not-allowed" 
-                : "border-white scale-100 cursor-pointer hover:scale-105"
-            }`}
-            onClick={handleReset}
-          >
-            <QRCode 
-              size={230}
-              value={isResetting.value ? "" : QR_COMMANDS.RESET} 
-            />
-          </div>
-          <button 
-            onClick={handleReset} 
-            disabled={isResetting.value}
-            className={`py-3 px-6 rounded-lg font-bold text-xl transition-colors w-full text-center ${
-              isResetting.value 
-                ? "bg-blue-500 text-white cursor-not-allowed opacity-80" 
-                : "bg-[#e9a178] text-[#1e1e24] hover:bg-[#f3b28a] cursor-pointer"
-            }`}
-          >
-            {isResetting.value ? "Resetting..." : "Play Again"}
-          </button>
-        </div>
+        <button 
+          onClick={handleReset} 
+          disabled={isResetting.value}
+          className={`ml-4 py-2 px-6 rounded-lg font-bold text-lg transition-colors self-center ${
+            isResetting.value 
+              ? "bg-blue-500 text-white cursor-not-allowed opacity-80" 
+              : "bg-[#e9a178] text-[#1e1e24] hover:bg-[#f3b28a] cursor-pointer"
+          }`}
+        >
+          {isResetting.value ? "Resetting..." : "Play Again"}
+        </button>
       </div>
     </div>
   );

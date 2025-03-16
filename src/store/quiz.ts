@@ -1,4 +1,4 @@
-import { signal, effect } from "@preact/signals-react";
+import { signal, effect, computed } from "@preact/signals-react";
 import type { Question, QuizState, Option } from "@/types";
 import { createPartyKitFetchUrl } from "../utils/url";
 import { roomCode } from "./partyConnection";
@@ -58,12 +58,12 @@ const defaultQuestions: Question[] = [
 
 // Constants for pool management
 const QUESTION_POOL_KEY = 'questionPool';
-const MIN_POOL_SIZE = 24; // Minimum number of questions to maintain in the pool
-const BATCH_GENERATE_SIZE = 8; // Number of questions to generate at once
+const BATCH_GENERATE_SIZE = 12; // Number of questions to generate at once
 
 export const questionsPerRound = signal<number>(
-  Number.parseInt(localStorage.getItem("questionsPerRound") || "4")
+  Number.parseInt(localStorage.getItem("questionsPerRound") || "8")
 );
+const minPoolSize = computed(() => questionsPerRound.value * 2);
 
 effect(() => {
   localStorage.setItem("questionsPerRound", questionsPerRound.value.toString());
@@ -119,16 +119,16 @@ async function ensurePoolHasEnoughQuestions() {
   if (isGeneratingQuestions.value) return;
   
   // If pool has enough questions, we're good
-  if (questionPool.value.length >= MIN_POOL_SIZE) return;
+  if (questionPool.value.length >= minPoolSize.value) return;
   
-  console.log(`Question pool low (${questionPool.value.length}/${MIN_POOL_SIZE}), generating more...`);
+  console.log(`Question pool low (${questionPool.value.length}/${minPoolSize.value}), generating more...`);
   
   // Mark as generating
   isGeneratingQuestions.value = true;
   
   try {
     // Determine how many questions to generate
-    const generateCount = Math.max(BATCH_GENERATE_SIZE, MIN_POOL_SIZE - questionPool.value.length);
+    const generateCount = Math.max(BATCH_GENERATE_SIZE, minPoolSize.value - questionPool.value.length);
     
     // Generate new questions
     const response = await fetch(createPartyKitFetchUrl(`/generate?count=${generateCount}`, roomCode.value));
@@ -179,7 +179,7 @@ function getQuestionsForQuiz(count = questionsPerRound.value): Question[] {
     const quizQuestions = shuffled.slice(0, count);
     
     // Trigger background refresh if pool is getting low, but don't block
-    if (pool.length < MIN_POOL_SIZE) {
+    if (pool.length < minPoolSize.value) {
       setTimeout(() => ensurePoolHasEnoughQuestions(), 100);
     }
     
@@ -260,13 +260,11 @@ export function answerQuestion(answerId: string) {
       };
       
       // If we showed demo questions, trigger background generation
-      if (isUsingDemoQuestions.value) {
-        ensurePoolHasEnoughQuestions();
-      }
+      ensurePoolHasEnoughQuestions();
     }
     // End transition animation
     isAnswerTransitioning.value = false;
-  }, 1000);
+  }, 900);
 }
 
 // Remove completed non-demo questions from the pool once quiz is finished

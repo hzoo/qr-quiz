@@ -10,7 +10,7 @@ import {
 } from "@/store/partyConnection";
 import { QR_COMMANDS, scannerEnabled } from "@/store/uiSignals";
 import { initQuiz } from "@/store/quiz";
-import { quizStarted } from "@/store/quiz";
+import { quizStarted, questionsPerRound } from "@/store/quiz";
 
 export function QuizWelcomeView() {
 	useSignals();
@@ -47,6 +47,11 @@ export function QuizWelcomeView() {
 			.replace(/[^A-Z]/g, "")
 			.slice(0, 4);
 		customRoomCode.value = value;
+	};
+
+	// Handle questions per round change
+	const handleQuestionsChange = (value: number) => {
+		questionsPerRound.value = value;
 	};
 
 	// Join a custom room
@@ -88,11 +93,11 @@ export function QuizWelcomeView() {
 			<div className="mb-8 text-center">
 				<div className="flex items-center justify-center gap-2 mb-2">
 					<BarcodeStripes className="h-10 w-14" />
-					<h1 className="text-4xl font-bold text-[#e9a178]">Barcode Quiz</h1>
+					<h1 className="text-6xl font-bold text-[#e9a178]">Barcode Quiz</h1>
 					<BarcodeStripes className="h-10 w-14" />
 				</div>
 				<p className="text-gray-300">with henry zhu</p>
-				<p className="text-xl text-gray-300 pt-6">
+				<p className="text-xl text-gray-300 pt-6 italic">
 					control everything with QR codes
 				</p>
 			</div>
@@ -163,15 +168,12 @@ export function QuizWelcomeView() {
 					<div className="flex flex-col text-gray-300 items-center mt-3">
 						<div className="flex items-center gap-2">
 							<span className="text-[#e9a178] text-xl">📱</span>
-							<p>Use your phone's camera to scan QR codes</p>
+							<p>Use your <span className="text-[#e9a178] font-semibold">phone's camera</span> to scan QR codes</p>
 						</div>
 						<div className="flex items-center gap-2">
 							<span className="text-[#e9a178] text-xl">🔍</span>
-							<p>Or use a dedicated barcode scanner</p>
+							<p>Or use a dedicated <span className="text-[#e9a178] font-semibold">barcode scanner</span></p>
 						</div>
-						<p className="text-sm text-gray-400 mt-2">
-							Scan this QR code for detailed instructions!
-						</p>
 					</div>
 				</div>
 
@@ -227,6 +229,32 @@ export function QuizWelcomeView() {
           </div> */}
 
 					<div className="flex flex-col justify-center items-center flex-1">
+						{/* Questions per round selector */}
+						<div className="w-full mb-8">
+							<div className="bg-[#23232b] border border-[#3d3d47] rounded-lg p-4">
+								<div className="flex justify-between items-center mb-2">
+									<div className="text-sm font-medium text-gray-400">
+										# of Questions
+									</div>
+								</div>
+								<div className="mt-3 flex justify-between">
+									{[4, 8, 12, 16].map((count) => (
+										<button
+											key={count}
+											onClick={() => handleQuestionsChange(count)}
+											className={`w-10 h-10 rounded-full flex items-center justify-center font-medium ${
+												questionsPerRound.value === count
+													? "bg-[#e9a178] text-[#1e1e24]"
+													: "bg-[#3d3d47] text-white hover:bg-[#4d4d57]"
+											}`}
+										>
+											{count}
+										</button>
+									))}
+								</div>
+							</div>
+						</div>
+						
 						<h2 className="text-xl font-bold text-[#e9a178] mb-6">
 							Ready to Begin?
 						</h2>
