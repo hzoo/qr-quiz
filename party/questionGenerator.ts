@@ -2,32 +2,36 @@ import type { Question } from "@/types";
 
 const categories = [
   "Systems Thinking & Design (patterns that connect, wholeness, living structures, design principles)",
-  "Urban Ecology & Community (convivial tools, human scale, vernacular knowledge, neighborhood wisdom)",
-  "Theology & Spirituality (existential questions, religious insights, contemplative traditions, mysticism)",
+  "Urban Ecology & Community (Ivan Illich's convivial tools, James Scott's Legibility, Jane Jacobs's neighborhood wisdom, McLuhan's media)",
   "Cultural Anthropology (surprising cultural practices, rituals, social phenomena across civilizations)",
+  "Theology & Spirituality (existential questions, religious traditions, contemplative practices)",
   "Philosophy & Ethics (existential insights, moral dilemmas, thought experiments, paradoxes)",
   "History's Turning Points (overlooked moments that changed everything, historical ironies)",
   "Music & Sound Theory (surprising acoustics, composition techniques, musical innovations)",
   "Visual Arts & Design (unexpected influences, techniques that revolutionized perception)",
   "Digital Culture (internet history, meme evolution, virtual communities, digital anthropology)",
-  "Programming Philosophy (conceptual breakthroughs, elegant solutions, computational thinking)",
+  "Programming Languages & Paradigms (language design, compiler theory, type systems, runtime environments)",
+  "Computer Science Theory (algorithmic complexity, formal verification, concurrency models)",
   "Literary Secrets (hidden meanings, author lives, unexpected connections between works)",
   "Scientific Paradigm Shifts (discoveries that changed worldviews, counterintuitive findings)",
   "Technology & Society (inventions that transformed human behavior, ethical intersections)",
   "Cognitive Science (how humans think, perceive, decide, and create meaning)",
-  "Cross-Disciplinary Connections (where art meets science, theology meets technology, etc)",
   "Ancient Knowledge & Modern Discoveries (old wisdom validated by new research)",
-  "Information Encoding & Semiotics (symbols, signs, language, visual communication)",
-  // "QR History & Evolution (predecessors, competitors, technical origins, cultural adoption)",
-  "Protocol Design & Technical Elegance (simple solutions to complex problems, elegant encoding)",
+  "Information Encoding & Cryptography (encoding schemes, error correction, security principles)",
+  "NYC Tech & Art Scene (local history, significant figures, iconic locations, community developments)",
+  "Protocol Design & Technical Standards (TCP/IP, HTTP, WebRTC, technical evolution)",
   "Visual Data & Information Art (data visualization, aesthetic encoding, visual communication)",
   "Cross-Disciplinary Connections (where art meets technology, community meets code, design meets ethics)",
+  "Open Source Communities (governance models, notable projects, community dynamics)",
+  "Hardware Hacking & Physical Computing (Arduino, sensors, IoT, circuit design)",
+  "Hackerspace & Coding Communities (Recurse Center, hackathons, collective learning)",
+  "Artificial Intelligence (LLMs, Base Models, AI history, ethical considerations, future scenarios, creative applications, vibe coding)",
 ];
 
 export async function generateQuestions(count = 4): Promise<Question[]> {
   const batchSize = Math.max(6, count);
   
-  const prompt = `Create ${batchSize} intellectually stimulating trivia questions that blend curiosity and insight.
+  const prompt = `Create ${batchSize} intellectually stimulating trivia questions that blend curiosity and insight for an art/tech audience at the Recurse Center in NYC.
 
 ACTIVE CATEGORIES:
 ${categories.filter(cat => !cat.startsWith('//'))
@@ -35,25 +39,28 @@ ${categories.filter(cat => !cat.startsWith('//'))
     .join('\n')}
 
 QUESTION GUIDELINES:
-1. Include questions across the spectrum from accessible to challenging, with most questions being moderately challenging
+1. Include a spectrum of questions from accessible to challenging, with tech-focused questions being notably more advanced
 2. Create "aha moment" questions where the answer reveals an unexpected connection or insight
-3. Bridge 2+ categories in at least half of the questions (e.g., theology meets art)
+3. Bridge 2+ categories in some of the questions (e.g., NYC tech scene meets art history, theology meets music)
 4. Include questions with subtle historical ironies, paradoxes, or pattern-breaking examples
-5. Include some questions related to visual encoding, information display, and the interaction between technology and society (just a few because the trivia is being done at a QR show but just as a nod, not a lot)
-6. Aim for timeless questions rather than trending topics (though very recent stuff is fine)
+5. Include a smidge of questions related to visual encoding, QR codes, and information display as a nod to the exhibition theme
+6. Aim for timeless questions rather than trending topics (though recent developments in tech/art are welcome)
+7. Include questions that would resonate with the local NYC tech/art community (Recurse Center, School of Poetic Computation, Hex House, ITP, Wonderville, Fractal Tech, people involved, events, etc)
+8. For each batch, ensure questions span at least 8 different categories to maintain diversity
 
 BALANCE:
-- Include a mix of questions: 20% accessible, 60% moderately challenging, 20% specialist-level
+- For general knowledge questions: 30% accessible, 50% moderately challenging, 20% specialist-level
+- For technical/programming questions: 10% accessible, 40% moderately challenging, 50% specialist-level (both theoretical computer science and practical engineering questions)
 - Some questions can be playful or surprising while others more intellectually rigorous
 - Balance historical knowledge with conceptual understanding questions
-- Include both technological details and human/societal impact questions
 
 FOR EACH QUESTION:
 - Make sure it passes the "that's interesting!" test - would someone want to share this fact?
 - Include exactly 4 options with only ONE correct answer
 - Craft wrong answers that are plausible but clearly incorrect to someone who knows the topic
-- Don't include obvious hints or gendered pronouns that give away the answer
-- For questions about QR codes/encoding, consider how they might relate to broader ideas about communication, design, and community (just as a nod to the theme, not a lot of questions)
+- Don't include obvious hints in the question that give away the answer
+- Ensure each question is unique - avoid similar themes or patterns within a batch
+- For tech questions, assume the audience has some programming experience but vary the specialized knowledge required
 
 The response must be valid JSON with the specified schema.`;
 
@@ -77,9 +84,9 @@ The response must be valid JSON with the specified schema.`;
           },
         ],
         generationConfig: {
-          // temperature: 0.5,
-          // topK: 40,
-          // topP: 0.95,
+          temperature: 0.7,
+          topK: 40,
+          topP: 0.95,
           response_mime_type: "application/json",
           response_schema: {
             type: "ARRAY",
