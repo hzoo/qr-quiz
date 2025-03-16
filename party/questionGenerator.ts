@@ -2,9 +2,10 @@ import type { Question } from "@/types";
 
 const categories = [
   "Systems Thinking & Design (patterns that connect, wholeness, living structures, design principles)",
-  "Urban Ecology & Community (Ivan Illich's convivial tools, James Scott's Legibility, Jane Jacobs's neighborhood wisdom, McLuhan's media)",
+  "Urban Ecology & Community (concepts related to but not specifically about James Scott, Jane Jacobs, Marshall McLuhan, Ivan Illich, etc.)",
   "Cultural Anthropology (surprising cultural practices, rituals, social phenomena across civilizations)",
-  "Theology & Spirituality (existential questions, religious traditions, contemplative practices)",
+  "Theology & Spirituality (existential questions, religious liturgy, contemplative practices)",
+  "Religious Texts (history, known stories, characters, ideas)",
   "Philosophy & Ethics (existential insights, moral dilemmas, thought experiments, paradoxes)",
   "History's Turning Points (overlooked moments that changed everything, historical ironies)",
   "Music & Sound Theory (surprising acoustics, composition techniques, musical innovations)",
@@ -18,14 +19,13 @@ const categories = [
   "Cognitive Science (how humans think, perceive, decide, and create meaning)",
   "Ancient Knowledge & Modern Discoveries (old wisdom validated by new research)",
   "Information Encoding & Cryptography (encoding schemes, error correction, security principles)",
-  "NYC Tech & Art Scene (local history, significant figures, iconic locations, community developments)",
   "Protocol Design & Technical Standards (TCP/IP, HTTP, WebRTC, technical evolution)",
   "Visual Data & Information Art (data visualization, aesthetic encoding, visual communication)",
-  "Cross-Disciplinary Connections (where art meets technology, community meets code, design meets ethics)",
   "Open Source Communities (governance models, notable projects, community dynamics)",
+  "Classic Papers (essays, papers, books, blogs, tweets that change various fields of study, like Programming as Theory Building)",
   "Hardware Hacking & Physical Computing (Arduino, sensors, IoT, circuit design)",
-  "Hackerspace & Coding Communities (Recurse Center, hackathons, collective learning)",
-  "Artificial Intelligence (LLMs, Base Models, AI history, ethical considerations, future scenarios, creative applications, vibe coding)",
+  "Artificial Intelligence (LLMs, Base Models, AI history, ethical considerations, future scenarios, creative applications)",
+  "Cross-Disciplinary Connections (where art meets technology, community meets code, design meets ethics)",
 ];
 
 export async function generateQuestions(count: number): Promise<Question[]> {
@@ -40,12 +40,12 @@ ${categories.filter(cat => !cat.startsWith('//'))
 
 QUESTION GUIDELINES:
 1. Include a spectrum of questions from accessible to challenging, with tech-focused questions being notably more advanced
-2. Create "aha moment" questions where the answer reveals an unexpected connection or insight
-3. Bridge 2+ categories in some of the questions (e.g., NYC tech scene meets art history, theology meets music)
+2. Include "aha moment" questions where the answer reveals an unexpected connection or insight
+3. Bridge 2+ categories in some of the questions (e.g. theology meets music)
 4. Include questions with subtle historical ironies, paradoxes, or pattern-breaking examples
 5. Include a smidge of questions related to visual encoding, QR codes, and information display as a nod to the exhibition theme
 6. Aim for timeless questions rather than trending topics (though recent developments are welcome)
-7. Include questions that would resonate with the local NYC tech/art community (Recurse Center, School of Poetic Computation, Hex House, ITP, Wonderville, Fractal Tech, people involved, events, etc)
+7. Include questions that would resonate with the local NYC tech/art community (Recurse Center, School of Poetic Computation, NYU ITP)
 8. For each batch, ensure questions span different categories to maintain diversity
 
 BALANCE:
@@ -57,10 +57,8 @@ BALANCE:
 FOR EACH QUESTION:
 - Make sure it passes the "that's interesting!" test - would someone want to share this fact?
 - Include exactly 4 options with only ONE correct answer
-- Craft wrong answers that are plausible but clearly incorrect to someone who knows the topic
-- Don't include obvious hints in the question that give away the answer
-- Ensure each question is unique - avoid similar themes or patterns within a batch
-- For tech questions, assume the audience has some programming experience but vary the specialized knowledge required
+- Craft wrong answers that are plausible, but clearly incorrect to someone who knows the topic
+- Don't include obvious hints in the question that give away the answer, or restate the question as the answer ("what is functional programming, it uses funcitions")
 
 The response must be valid JSON with the specified schema.`;
 

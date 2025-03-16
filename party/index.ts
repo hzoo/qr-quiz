@@ -23,7 +23,7 @@ interface QuizQuestion {
 // Cache configuration
 const CACHE_CONFIG = {
   INITIAL_SIZE: 20,    // Initial number of questions to generate
-  LOW_THRESHOLD: 60,   // Threshold to trigger background generation
+  LOW_THRESHOLD: 50,   // Threshold to trigger background generation
   BATCH_SIZE: 30       // Number of questions to generate in each batch
 };
 

@@ -22,10 +22,10 @@ export function QuizResultsView() {
   // Get question text size based on question count
   const getQuestionTextSize = () => {
     const count = questions.length;
-    if (count <= 4) return "text-4xl";
-    if (count <= 8) return "text-3xl";
-    if (count <= 12) return "text-2xl";
-    return "text-xl";
+    if (count <= 4) return "text-lg";
+    if (count <= 8) return "text-base";
+    if (count <= 12) return "text-sm";
+    return "text-xs";
   };
   
   // Get answer text size based on question count
@@ -100,7 +100,7 @@ export function QuizResultsView() {
       </div>
       
       {/* Play Again Button and QR Code */}
-      <div className="mt-4 flex justify-center flex-col items-center gap-2">
+      <div className="mt-4 flex justify-center flex-col items-center gap-2 w-[250px] mx-auto">
         <div 
           onClick={() => handleQrCommand(QR_COMMANDS.RESET)}
           className={`bg-white rounded-md transition-all duration-500 border-4 ${

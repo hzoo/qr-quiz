@@ -88,38 +88,23 @@ export function QuizWelcomeView() {
 	};
 
 	return (
-		<div className="flex flex-col items-center justify-center h-full p-8 max-w-6xl mx-auto">
+		<div className="flex flex-col items-center justify-center h-full p-4 max-w-6xl mx-auto gap-2">
 			{/* Title with barcode styling */}
-			<div className="mb-8 text-center">
+			<div className="mb-4 text-center">
 				<div className="flex items-center justify-center gap-2 mb-2">
 					<BarcodeStripes className="h-10 w-14" />
 					<h1 className="text-7xl font-bold text-[#e9a178]">BARCODE QUIZ</h1>
 					<BarcodeStripes className="h-10 w-14" />
 				</div>
 				<p className="text-gray-300">with henry zhu</p>
-				<p className="text-xl text-gray-300 pt-6 italic">
+				<p className="text-xl text-gray-300 pt-4 italic">
 					control everything with QR codes
 				</p>
 			</div>
 
 			{/* Room information and connection status */}
-			<div className="flex items-center justify-center mb-8 gap-4">
-				<div className="flex items-center gap-2 px-4 py-2 bg-[#2b2b33] border border-[#3d3d47] rounded-lg">
-					<div className="flex items-center gap-1">
-						<div
-							className={`w-3 h-3 rounded-full ${statusColors[connectionStatus.value]}`}
-						/>
-						<span className="text-sm">
-							{connectionStatus.value === "connected"
-								? "Connected"
-								: connectionStatus.value === "connecting"
-									? "Connecting..."
-									: "Disconnected"}
-						</span>
-					</div>
-				</div>
 
-				{/* {roomCode.value && (
+			{/* {roomCode.value && (
 					<div className="px-4 py-2 bg-[#2b2b33] border border-[#3d3d47] rounded-lg">
 						<span className="text-sm font-semibold text-gray-300">
 							ROOM CODE
@@ -129,34 +114,15 @@ export function QuizWelcomeView() {
 						</span>
 					</div>
 				)} */}
-			</div>
 
 			{/* Main content grid: Instructions + Room joining */}
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full">
 				{/* Left side: Instructions */}
 				<div className="bg-[#2b2b33] border border-[#3d3d47] rounded-lg p-6 flex flex-col">
-					<h2 className="text-xl font-bold text-[#e9a178] mb-4">How to Play</h2>
-
-					<ol className="space-y-4 text-gray-300 flex-1">
-						<li className="flex items-start gap-2">
-							<span className="bg-[#e9a178] text-[#2b2b33] rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">
-								1
-							</span>
-							<span>
-								Players use their phone cameras to scan QR codes to answer
-								questions
-							</span>
-						</li>
-						<li className="flex items-start gap-2">
-							<span className="bg-[#e9a178] text-[#2b2b33] rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">
-								2
-							</span>
-							<span>Answer correctly to score points!</span>
-						</li>
-					</ol>
+					<h2 className="text-xl font-bold text-[#e9a178] mb-4">Either:</h2>
 
 					{/* Help QR code */}
-					<div className="mt-6 flex flex-col gap-2">
+					<div className="flex flex-col gap-4">
 						<div className="flex items-center gap-2">
 							<span className="text-[#e9a178] text-xl">📱</span>
 							<p>
@@ -164,7 +130,7 @@ export function QuizWelcomeView() {
 								<span className="text-[#e9a178] font-semibold">
 									phone's camera
 								</span>{" "}
-								to scan QR codes using this custom website (scan below)
+								to scan QR codes using a custom website (below)
 							</p>
 						</div>
 						<QRCode
@@ -179,8 +145,8 @@ export function QuizWelcomeView() {
 								Or use a dedicated{" "}
 								<span className="text-[#e9a178] font-semibold">
 									barcode scanner
-								</span>
-								{" "} nearby!
+								</span>{" "}
+								if nearby!
 							</p>
 							<span className="text-[#e9a178] text-xl">🔍</span>
 						</div>
@@ -265,12 +231,6 @@ export function QuizWelcomeView() {
 							</div>
 						</div>
 
-						<h2 className="text-xl font-bold text-[#e9a178] mb-6">
-							Ready to Begin?
-						</h2>
-						<p className="text-gray-300 text-center mb-8">
-							Once connected, click the button below or scan the QR code to start the quiz!
-						</p>
 						<div className="flex flex-col items-center gap-6 w-full">
 							<button
 								onClick={handleStartQuiz}
@@ -284,12 +244,11 @@ export function QuizWelcomeView() {
 
 							{/* Start Quiz QR Code */}
 							{connectionStatus.value === "connected" && (
-								<div className="mt-4 flex flex-col items-center">
-									<p className="text-gray-300 mb-3">Or scan this QR code to start:</p>
-									<QRCode
-										value={QR_COMMANDS.START_QUIZ}
-										size={150}
-									/>
+								<div className="mt-1 flex flex-col items-center">
+									<p className="text-gray-300 mb-3">
+										or scan this QR code to start:
+									</p>
+									<QRCode value={QR_COMMANDS.START_QUIZ} size={150} />
 								</div>
 							)}
 						</div>
