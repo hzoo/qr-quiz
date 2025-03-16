@@ -28,7 +28,7 @@ export function QuizWelcomeView() {
 			joinRoom(roomParam);
 		} else if (connectionStatus.value === "disconnected" && !roomCode.value) {
 			// Otherwise generate a new room code
-			initPartyConnection();
+			joinRoom("");
 		}
 
 		// Clean up URL parameter after processing it
@@ -61,7 +61,7 @@ export function QuizWelcomeView() {
 	// Create a new random room
 	const handleCreateNewRoom = () => {
 		isJoining.value = true;
-		initPartyConnection();
+		joinRoom(""); // Empty string will trigger random code generation in initPartyConnection
 		setTimeout(() => (isJoining.value = false), 1000);
 	};
 
@@ -79,6 +79,7 @@ export function QuizWelcomeView() {
 		disconnected: "bg-red-500",
 		connecting: "bg-yellow-500",
 		connected: "bg-green-500",
+		error: "bg-red-700",
 	};
 
 	return (
@@ -90,7 +91,7 @@ export function QuizWelcomeView() {
 					<h1 className="text-4xl font-bold text-[#e9a178]">Barcode Quiz</h1>
 					<BarcodeStripes className="h-10 w-14" />
 				</div>
-        <p className="text-gray-300">with henry zhu</p>
+				<p className="text-gray-300">with henry zhu</p>
 				<p className="text-xl text-gray-300 pt-6">
 					control everything with QR codes
 				</p>

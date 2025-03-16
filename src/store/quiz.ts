@@ -58,22 +58,12 @@ const defaultQuestions: Question[] = [
 
 // Constants for pool management
 const QUESTION_POOL_KEY = 'questionPool';
-const MIN_POOL_SIZE = 12; // Minimum number of questions to maintain in the pool
+const MIN_POOL_SIZE = 24; // Minimum number of questions to maintain in the pool
 const BATCH_GENERATE_SIZE = 8; // Number of questions to generate at once
-
-// Settings with defaults from localStorage
-export const questionsPerQuiz = signal<number>(
-  Number.parseInt(localStorage.getItem("questionsPerQuiz") || "10")
-);
 
 export const questionsPerRound = signal<number>(
   Number.parseInt(localStorage.getItem("questionsPerRound") || "4")
 );
-
-// Save settings when they change
-effect(() => {
-  localStorage.setItem("questionsPerQuiz", questionsPerQuiz.value.toString());
-});
 
 effect(() => {
   localStorage.setItem("questionsPerRound", questionsPerRound.value.toString());
