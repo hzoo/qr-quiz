@@ -151,28 +151,38 @@ export function QuizWelcomeView() {
 							<span className="bg-[#e9a178] text-[#2b2b33] rounded-full w-6 h-6 flex-shrink-0 flex items-center justify-center font-bold">
 								2
 							</span>
-							<span>Answer correctly to score points and win the game!</span>
+							<span>Answer correctly to score points!</span>
 						</li>
 					</ol>
 
 					{/* Help QR code */}
-					<div className="mt-6 flex items-center justify-center">
-						<div className="p-3 bg-white rounded-md">
-							<QRCode
-								value={`${window.location.origin}/qr.html${roomCode.value ? `?room=${roomCode.value}` : ""}`}
-								size={230}
-							/>
+					<div className="mt-6 flex flex-col gap-2">
+						<div className="flex items-center gap-2">
+							<span className="text-[#e9a178] text-xl">📱</span>
+							<p>
+								Use your{" "}
+								<span className="text-[#e9a178] font-semibold">
+									phone's camera
+								</span>{" "}
+								to scan QR codes using this custom website (scan below)
+							</p>
 						</div>
+						<QRCode
+							value={`${window.location.origin}/qr.html${roomCode.value ? `?room=${roomCode.value}` : ""}`}
+							size={230}
+						/>
 					</div>
 
 					<div className="flex flex-col text-gray-300 items-center mt-3">
 						<div className="flex items-center gap-2">
-							<span className="text-[#e9a178] text-xl">📱</span>
-							<p>Use your <span className="text-[#e9a178] font-semibold">phone's camera</span> to scan QR codes</p>
-						</div>
-						<div className="flex items-center gap-2">
+							<p>
+								Or use a dedicated{" "}
+								<span className="text-[#e9a178] font-semibold">
+									barcode scanner
+								</span>
+								{" "} nearby!
+							</p>
 							<span className="text-[#e9a178] text-xl">🔍</span>
-							<p>Or use a dedicated <span className="text-[#e9a178] font-semibold">barcode scanner</span></p>
 						</div>
 					</div>
 				</div>
@@ -254,7 +264,7 @@ export function QuizWelcomeView() {
 								</div>
 							</div>
 						</div>
-						
+
 						<h2 className="text-xl font-bold text-[#e9a178] mb-6">
 							Ready to Begin?
 						</h2>

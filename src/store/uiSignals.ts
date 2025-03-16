@@ -13,3 +13,4 @@ export const scannerEnabled = signal(true);
 export const hideQrCodes = signal(false);
 export const helpModalOpen = signal(false);
 export const scannerReady = signal(true); 
+export const isResetting = signal(false);

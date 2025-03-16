@@ -1,32 +1,14 @@
 import { QRCode } from "@/components/QRCode";
-import { QR_COMMANDS } from "@/store/uiSignals";
+import { isResetting, QR_COMMANDS } from "@/store/uiSignals";
 import { useSignals } from "@preact/signals-react/runtime";
-import { useSignal } from "@preact/signals-react";
 import { quizState, restartQuiz } from "@/store/quiz";
+import { handleQrCommand } from "@/utils/qrCommands";
 
 export function QuizResultsView() {
   useSignals();
-  const isResetting = useSignal(false);
   
   // Get data directly from quizState
   const { questions, userAnswers } = quizState.value;
-  
-  // Calculate correct answers count
-  const correctAnswersCount = Object.entries(userAnswers).filter(([questionId]) => {
-    const question = questions.find(q => q.id === questionId);
-    const userOption = question?.options.find(o => o.id === userAnswers[questionId]);
-    return userOption?.isCorrect;
-  }).length;
-  
-  const handleReset = () => {
-    isResetting.value = true;
-    // Just show reset animation briefly
-    setTimeout(() => {
-      // Reset immediately
-      restartQuiz();
-      isResetting.value = false;
-    }, 350);
-  };
   
   // Get grid classes based on question count
   const getGridClasses = () => {
@@ -120,7 +102,7 @@ export function QuizResultsView() {
       {/* Play Again Button and QR Code */}
       <div className="mt-4 flex justify-center flex-col items-center gap-2">
         <div 
-          onClick={handleReset}
+          onClick={() => handleQrCommand(QR_COMMANDS.RESET)}
           className={`bg-white rounded-md transition-all duration-500 border-4 ${
             isResetting.value 
               ? "border-blue-400 shadow-lg shadow-blue-900/20" 
@@ -133,7 +115,7 @@ export function QuizResultsView() {
           />
         </div>
         <button 
-          onClick={handleReset} 
+          onClick={() => handleQrCommand(QR_COMMANDS.RESET)} 
           disabled={isResetting.value}
           className={`ml-4 py-2 px-6 rounded-lg font-bold text-lg transition-colors self-center ${
             isResetting.value 

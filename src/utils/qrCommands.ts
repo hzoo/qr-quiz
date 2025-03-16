@@ -1,4 +1,4 @@
-import { QR_COMMANDS } from "@/store/uiSignals";
+import { isResetting, QR_COMMANDS } from "@/store/uiSignals";
 import { helpModalOpen } from "@/store/uiSignals";
 import { restartQuiz } from "@/store/quiz";
 
@@ -14,8 +14,11 @@ const QR_COMMAND_MAP: Record<string, QrCommand> = {
     id: QR_COMMANDS.RESET,
     message: "Restart Quiz",
     handler: () => {
-      console.log("Reset command detected");
-      restartQuiz();
+      isResetting.value = true;
+      setTimeout(() => {
+        restartQuiz();
+        isResetting.value = false;
+      }, 350);
     }
   },
   [QR_COMMANDS.CLOSE_HELP.toLowerCase()]: {

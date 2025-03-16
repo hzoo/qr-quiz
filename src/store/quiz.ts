@@ -288,7 +288,7 @@ function removeCompletedQuestionsFromPool() {
 }
 
 // Start a new quiz
-export function startNewQuiz() {
+export function restartQuiz() {
   const quizQuestions = getQuestionsForQuiz();
   
   quizState.value = {
@@ -303,11 +303,6 @@ export function startNewQuiz() {
   };
 }
 
-// Reset and restart quiz
-export function restartQuiz() {
-  startNewQuiz();
-}
-
 // Initialize the quiz 
 export async function initQuiz() {
   // If pool is empty or too small, try to generate questions first
@@ -316,5 +311,5 @@ export async function initQuiz() {
   }
   
   // Start new quiz with whatever questions we have
-  startNewQuiz();
+  restartQuiz();
 } 
