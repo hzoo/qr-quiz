@@ -19,6 +19,7 @@ export function HelpModal() {
     <div className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4" onClick={closeModal}>
       <div className="bg-[#2b2b33] p-5 rounded-xl shadow-2xl max-w-lg w-full" onClick={e => e.stopPropagation()}>
         <h2 className="text-xl font-semibold mb-3">Barcode Quiz Help</h2>
+        <p className="mb-3">(currently single player)</p>
         <p className="mb-3">Scan the QR codes with your barcode scanner or phone to navigate the quiz:</p>
         <ul className="list-disc pl-5 mb-4 space-y-1">
           <li>Each QR code represents an answer option</li>

@@ -48,17 +48,27 @@ QUESTION GUIDELINES:
 7. Include questions that would resonate with the local NYC tech/art community (Recurse Center, School of Poetic Computation, NYU ITP)
 8. For each batch, ensure questions span different categories to maintain diversity
 
-BALANCE:
-- For general knowledge questions: 40% accessible, 50% moderately challenging, 10% specialist-level
-- For technical/programming questions: 10% accessible, 40% moderately challenging, 50% specialist-level (both theoretical computer science and practical engineering questions)
-- Some questions can be playful or surprising while others more intellectually rigorous
-- Balance historical knowledge with conceptual understanding questions
+KNOWLEDGE & LEARNING APPROACH:
+- Design questions that test genuine understanding rather than definitional knowledge
+- Avoid simple definition-based questions (like "What is X?" → "X is a thing that...")
+- Create questions where learning the answer teaches something valuable or surprising
+- Questions should prompt curiosity or reveal hidden connections between concepts
+- Favor questions that illuminate deeper principles over surface-level facts
 
 FOR EACH QUESTION:
-- Make sure it passes the "that's interesting!" test - would someone want to share this fact?
+- Craft wrong answers that would tempt even knowledgeable participants and require genuine understanding to eliminate
+- All answer choices should seem plausible and be in the same conceptual neighborhood as the correct answer
+- Wrong answers should often contain a grain of truth but miss a crucial detail or connection
+- Don't include obvious hints in the question that give away the answer
+- Avoid questions where the answer is essentially restating the question's terms (e.g., "Q: What is functional programming? A: Programming that uses functions")
+- Questions should pass both an "that's interesting!" test OR a "I learned something" test
 - Include exactly 4 options with only ONE correct answer
-- Craft wrong answers that are plausible, but clearly incorrect to someone who knows the topic
-- Don't include obvious hints in the question that give away the answer, or restate the question as the answer ("what is functional programming, it uses funcitions")
+
+WRONG ANSWER QUALITY CRITERIA:
+- Each wrong answer should be thoughtfully constructed, not just random alternatives
+- Wrong answers should often represent common misconceptions or close-but-not-quite-right understanding
+- Avoid obviously incorrect options that anyone with basic knowledge could eliminate
+- The difference between right and wrong answers should often hinge on nuance or precise understanding
 
 The response must be valid JSON with the specified schema.`;
 

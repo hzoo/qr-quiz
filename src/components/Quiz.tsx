@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { useSignals } from "@preact/signals-react/runtime";
 import { 
   quizState,
+  quizStarted
 } from "@/store/quiz";
 
 import { QuizHeader } from "./Quiz/QuizHeader";
@@ -10,7 +11,8 @@ import { QuizResultsView } from "./Quiz/QuizResultsView";
 import { QuizQuestionView } from "./Quiz/QuizQuestionView";
 import { QuizWelcomeView } from "./Quiz/QuizWelcomeView";
 import { HelpModal } from "./Quiz/HelpModal";
-import { quizStarted } from "@/store/quiz";
+import { InactivityTimer } from "./InactivityTimer";
+import { TimerIndicator } from "./TimerIndicator";
 
 export function Quiz() {
   useSignals();
@@ -36,12 +38,16 @@ export function Quiz() {
 
   return (
     <div className="flex flex-col h-screen min-h-0 bg-[#1e1e24] text-[#ebebf0]">
+      {/* This component handles the inactivity timer logic */}
+      <InactivityTimer />
+      
       <div className="flex-none">
         {showHeaderAndHelp && (
           <>
             <HelpModal />
             <QuizHeader
               title="Barcode Quiz"
+              rightContent={<TimerIndicator />}
             />
           </>
         )}

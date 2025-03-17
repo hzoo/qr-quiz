@@ -10,12 +10,14 @@ import {
 import { connectionStatus, roomCode } from "@/store/partyConnection";
 import { useSignals } from "@preact/signals-react/runtime";
 import { quizState, isAnswerTransitioning } from "@/store/quiz";
+import type { ReactNode } from "react";
 
-type QuizHeaderProps = {
+interface QuizHeaderProps {
 	title: string;
-};
+	rightContent?: ReactNode;
+}
 
-export function QuizHeader({ title }: QuizHeaderProps) {
+export function QuizHeader({ title, rightContent }: QuizHeaderProps) {
 	useSignals();
 
 	// Get data from quizState
@@ -37,6 +39,7 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 		disconnected: "bg-red-500",
 		connecting: "bg-yellow-500",
 		connected: "bg-green-500",
+		error: "bg-red-700", // Adding error state to fix the type error
 	};
 
 	// Event handlers
@@ -130,6 +133,9 @@ export function QuizHeader({ title }: QuizHeaderProps) {
 
 				{/* Right side - Score and scanner status */}
 				<div className="flex items-center gap-4">
+					{/* Inactivity Timer Indicator - new */}
+					{rightContent}
+
 					{/* Scanner status indicator with toggle */}
 					<div className="flex items-center">
 						<div
